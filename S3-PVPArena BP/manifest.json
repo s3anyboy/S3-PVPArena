@@ -1,0 +1,55 @@
+{
+	"format_version": 2,
+	"metadata": {
+		"authors": [
+			"S3anyBoy"
+		]
+	},
+	"header": {
+		"name": "[S3]PVPArena",
+		"description": "[S3]PVPArena",
+		"min_engine_version": [
+			1,
+			21,
+			0
+		],
+		"uuid": "e646d4ce-0bf5-4fe8-8d96-f7fe833f4c07",
+		"version": [
+			1,
+			0,
+			0
+		]
+	},
+	"modules": [
+		{
+			"type": "data",
+			"uuid": "4190f8fa-01d1-4f95-a6a1-317c519aa2ea",
+			"version": [
+				1,
+				0,
+				0
+			]
+		},
+		{
+			"type": "script",
+			"language": "javascript",
+			"uuid": "c1a81684-8278-4b5a-8e7a-4d1dd03640b2",
+			"version": [1, 0, 0],
+			"entry": "scripts/PVPArenaMain.js"
+		}
+	],
+	"dependencies": [
+		{
+			"module_name": "@minecraft/server",
+			"version": "1.16.0-beta"
+		},
+		{
+			"uuid": "b7f90952-bdb0-4053-b508-30279a7400c8",
+			"version": [
+				1,
+				0,
+				0
+			]
+		}
+	]
+}
