@@ -4,7 +4,7 @@
 ## Kill Count Commands:
 !killcount - all kill count
 
-!hostilekillcount - hostiles (includes piglin) kill count
+!hostilekillcount - hostiles (includes piglin + endermen) kill count
 
 !bosskillcount - boss kill count
 
