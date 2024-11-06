@@ -211,6 +211,9 @@ world.afterEvents.entityDie.subscribe((e) => {
 
 // World initialize scoreboards
 world.afterEvents.worldInitialize.subscribe((startup) => {
+	
+
+	
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: allkillsObjective, });
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: allkillsObjective, });
 		
@@ -225,6 +228,8 @@ world.afterEvents.playerJoin.subscribe((e) => {
     return;
   }
 	
+
+	
   for (let key in scoreboards) {
     const obj = scoreboards[key];
     const objective = world.scoreboard.getObjective(obj.objective);
@@ -232,8 +237,36 @@ world.afterEvents.playerJoin.subscribe((e) => {
       continue;
     }
 		
+	system.run(() => {
+    objective.removeParticipant(player);
+    // objective.removeParticipant("Player Offline");
+		console.log('Removing player from scoreboard list before initilization');
+	})	
     objective.setScore(player, 0);
 		
+  }
+		
+});
+
+// Player quit hide scoreboard entries
+world.beforeEvents.playerLeave.subscribe((quitter) => {
+  const player = world.getPlayers({ name: quitter.playerName })[0];
+	
+  if (!player) {
+    return;
+  }
+	
+  for (let key in scoreboards) {
+    const obj = scoreboards[key];
+    const objective = world.scoreboard.getObjective(obj.objective);
+    if (!objective) {
+      continue;
+    }
+
+	system.run(() => {
+    objective.removeParticipant(player);;
+		console.log('Removing player from scoreboard list until rejoin');
+	})	
   }
 		
 });
@@ -255,6 +288,7 @@ async function initializeScoreboard() {
     world.getAllPlayers().forEach((p) => {
       objective.setScore(p, 0);
     });
+		
   }
 }
 

@@ -1,4 +1,4 @@
-import { world, system, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
+import { world, system, GameRules, GameRule, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
 
 import { allkillsObjective, hostilekillsObjective, bosskillsObjective, elderkillsObjective, dragonkillsObjective, wardenkillsObjective, witherkillsObjective, playerkillsObjective, pvpkillsObjective, customkillsObjective } from './ScoreboardHandler.js';
 // import { currentpvpmatchkillsObjective } from './ScoreboardHandler.js';
@@ -7,37 +7,22 @@ import { scoreboards } from './ScoreboardHandler.js';
 import * as config from './PVPUserConfig.js';
 // import { obj , objective} from './ScoreboardHandler.js';
 
-// ARENA LOCATION
-// const START_TICK = 100;
-// const ARENA_X_SIZE = 30;
-// const ARENA_Z_SIZE = 30;
-// const ARENA_X_OFFSET = 0;
-// const ARENA_Y_OFFSET = -60;
-// const ARENA_Z_OFFSET = 0;
-// const ARENA_X_LOC = 9985;
-// const ARENA_Y_LOC = 63;
-// const ARENA_Z_LOC = 10015;
 
-// Team Spawns
-// const RED_X_LOC = 10018;
-// const RED_Y_LOC = 63;
-// const RED_Z_LOC = 10008;
-
-// const GREEN_X_LOC = 9985;
-// const GREEN_Y_LOC = 63;
-// const GREEN_Z_LOC = 10015;
-
-// const BLUE_X_LOC = 9985;
-// const BLUE_Y_LOC = 63;
-// const BLUE_Z_LOC = 10015;
-
-// const YELLOW_X_LOC = 9985;
-// const YELLOW_Y_LOC = 63;
-// const YELLOW_Z_LOC = 10015;
-
-// const PURPLE_X_LOC = 9985;
-// const PURPLE_Y_LOC = 63;
-// const PURPLE_Z_LOC = 10015;
+// Gamemode Switch Command
+world.beforeEvents.chatSend.subscribe((eventData) => {
+	const player = eventData.sender;
+	switch (eventData.message) {
+		case '!gmc':
+			eventData.cancel = true;
+			player.runCommandAsync('gamemode c');
+			break;
+		case '!gms':
+			eventData.cancel = true;
+			player.runCommandAsync('gamemode s');
+			break;
+		default: break;
+	}
+});
 
 const arenaDimension = world.getDimension("minecraft:overworld");
 const overworld = world.getDimension("minecraft:overworld");
@@ -108,7 +93,7 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		}
 		
 	// PVP Joining
-    if (message == "!join" || message == "!JOIN" || message == "!joinpvp" || message == "!JOINPVP") //return 
+    if (message == "!join" || message == "!JOIN" || message == "!joinpvp" || message == "!JOINPVP")  
 		{
 		chatData.cancel = true;
     system.run(() => {
@@ -118,17 +103,28 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		} 
 		
 		// PVP Leave
-		if (message == "!leave" || message == "!LEAVE" || message == "!leavepvp" || message == "!LEAVEPVP" || message == "!quit" || message == "!QUIT" || message == "!quitpvp" || message == "!QUITPVP") //return 
+		if (message == "!leave" || message == "!LEAVE" || message == "!leavepvp" || message == "!LEAVEPVP" || message == "!quit" || message == "!QUIT" || message == "!quitpvp" || message == "!QUITPVP")  
 		{
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"You have left the PVP match."}`);
 			sender.removeTag('s3:pvp');
 			})
+		}
+
+		// PVP Spectate
+		if (message == "!watch" || message == "!WATCH" || message == "!watchpvp" || message == "!WATCHPVP" || message == "!spectate" || message == "!SPECTATE" || message == "!spectatepvp" || message == "!SPECTATEPVP") 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"You are spectating the PVP match."}`);
+			sender.removeTag('s3:pvp');
+			sender.addTag('s3:spectator');
+			})
 		}	
 		
 		// PVP Gamemode Select
-		if (message == "!slayer" || message == "!SLAYER" || message == "!dm" || message == "!DM" ) //return 
+		if (message == "!slayer" || message == "!SLAYER" || message == "!dm" || message == "!DM" )  
 		{
 		chatData.cancel = true;
     system.run(() => {
@@ -139,7 +135,7 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		}
 
 		// PVP Start/Ending
-		if (message == "!startpvp" || message == "!STARTPVP" ||message == "!pvpstart" || message == "!PVPSTART" || message == "!beginpvp" || message == "!BEGINPVP" || message == "!pvpbegin" || message == "!PVPBEGIN" || message == "!START" || message == "!start" ) //return 
+		if (message == "!startpvp" || message == "!STARTPVP" ||message == "!pvpstart" || message == "!PVPSTART" || message == "!beginpvp" || message == "!BEGINPVP" || message == "!pvpbegin" || message == "!PVPBEGIN" || message == "!START" || message == "!start" )  
 		{
 		chatData.cancel = true;
     system.run(() => {
@@ -167,8 +163,8 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		{
 		chatData.cancel = true;
     system.run(() => {
-      world.sendMessage(`§4${"The PVP match is ending."}`);
-			endPVP();
+      
+			stopPVP();
 			clearPVP();
 			})
 		}
@@ -185,18 +181,19 @@ function joinPVP() {
 
   for (const player of players) {
 		sender.sendMessage(`§4${"You have joined the PVP match. It will begin shortly."}`);
-		sender.addTag('s3:pvp')
+		sender.addTag('s3:pvp');
+		pvpplayercount = (pvpplayercount +1);
 	}
 }
 
 // StopPVP function
 function stopPVP() {
-	const players = world.getAllPlayers();
-
-  for (const player of players) {
-		sender.sendMessage(`§4${"You have joined the PVP match. It will begin shortly."}`);
-		sender.addTag('s3:pvp')
-	}
+	
+		world.sendMessage(`§4${"The PVP match is ending."}`);
+		log.console('PVP MATCH ENDING');
+		
+		//Reset Gamerules
+		overworld.runCommandAsync(`gamerule mobGriefing ${mobgriefvalue}`); // disable creepers blowing up the arena
 }
 
 // Clear function - clear pvp tags
@@ -205,6 +202,7 @@ function clearPVP() {
 
   for (const player of players) {
 		player.removeTag('s3:pvp')
+		player.removeTag('s3:spectator')
 	}
 }
 
@@ -214,10 +212,13 @@ world.afterEvents.worldInitialize.subscribe((startup) => {
 		// world.scoreboard.removeObjective( "currentpvpmatchkills");
 });
 
+
 // Slayer
 function initializeSlayer() {
 
 	pvp_started = true;
+	
+	overworld.runCommandAsync(`gamerule mobGriefing false`); // disable creepers blowing up the arena
 
   // set up slayer scoreboard
 	// var currentpvpmatchkillsObjective = 0;
@@ -226,40 +227,28 @@ function initializeSlayer() {
 	  // if (!currentpvpmatchkillsObjective) {
     // currentpvpmatchkillsObjective = world.scoreboard.addObjective(objectiveId: "currentpvpmatchkills", displayName?: "Current PVP Match Kills:");
 		// }
-		
-		//remove old objective
 
-	
-		
 		//add new objective
 		if (!currentmatchkills) {
-		world.scoreboard.removeObjective( "currentpvpmatchkills"); // Remove old scoreboard
+		world.scoreboard.removeObjective( "currentpvpmatchkills"); // Remove old scoreboard objective
     world.scoreboard.addObjective( "currentpvpmatchkills", "Current Match Kills:");
 		}
 		
 		currentobjective = world.scoreboard.getObjective("currentpvpmatchkills");
 		currentmatchkills = currentobjective.getScores();
-		
 
-		
 		// objective.removeParticipant("currentpvpmatchkills");
-		
-
-
-
 
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: currentobjective, sortOrder: ObjectiveSortOrder.Descending, });
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: currentobjective, sortOrder: ObjectiveSortOrder.Descending, });
 
-
   const pvpplayers = world.getAllPlayers();
   // const pvpplayers = players.hasTag('s3:pvp');
 
-  for (const player of pvpplayers) {
-    
-		
+  for (const player of pvpplayers) {	
 		if (slayer == true && player.hasTag('s3:pvp'))
 		{	
+		
 		player.setGameMode(0);
 		currentobjective.setScore(player, 0);
     // let inv = player.getComponent("inventory"); // as EntityInventoryComponent;
@@ -341,4 +330,113 @@ world.beforeEvents.chatSend.subscribe((eventData) => {
     system.run(() => {
         sender.teleport(spawn, {dimension: spawnDimension})
     })
+});
+
+// GameRule (server settings) Handler
+// All the variables gamerules pvp gametypes can read/change
+
+var friendlyfirevalue; // pvp = Friendly Fire 
+var showcoordsvalue;
+var showdaysvalue;
+	var currentdayvalue; // for gametypes that reset the days played counter
+	var currentclocktimevalue; // for gametypes that reset the days played counter
+	var currentabsolutetimevalue; // for gametypes that reset the days played counter
+var firespreadsvalue; // dofiretick = Fire Spreads
+var tntexplodesvalue;
+var bedsexplodevalue;
+var instarespawnvalue;
+var moblootvalue;
+// Options below here are classified as "cheats" in the menu
+var mobspawnvalue;
+var mobgriefvalue; // this also affects villager farmers
+var	naturalgregenvalue;
+var alwaysdayvalue;
+var daycyclevalue;
+var weathercyclevalue;
+var keepinventoryvalue;
+var randomtickvalue;
+// Options below are not displayed in the settings menu
+var	drowningvalue;
+var	falldmgvalue;
+var	firedmgvalue;
+var freezedmgvalue;
+var insomniavalue;
+var playersleepvalue;
+var projbreakblocksvalue;
+var showbordervalue; // pumpking head?
+var showdeathsvalue // player death messages
+var showtagsvalue // player nametags?
+
+// On server initialization set all the gamerulevalue variables to match the server settings so they can be restored later
+world.afterEvents.worldInitialize.subscribe((gamerulesstartup) => {
+	//set each gamerulevalue variale and then log it to console
+	friendlyfirevalue = world.gameRules.pvp;
+	console.log('Friendly Fire:' , friendlyfirevalue);
+	showcoordsvalue = world.gameRules.showCoordinates;
+	console.log('Show Coords:' , showcoordsvalue);	
+	showdaysvalue = world.gameRules.showDaysPlayed;
+	console.log('Show Days:' , showdaysvalue);	
+		currentdayvalue = world.getDay();
+		console.log('Current Day:' , currentdayvalue);
+		currentclocktimevalue = world.getTimeOfDay();
+		console.log('Current Time of Day:' , currentclocktimevalue);
+		currentabsolutetimevalue = world.getAbsoluteTime();
+		console.log('Current Time (Absolute):' , currentabsolutetimevalue);	
+	firespreadsvalue = world.gameRules.doFireTick;
+	console.log('Fire Spreads:' , firespreadsvalue);
+	tntexplodesvalue = world.gameRules.tntExplodes;
+	console.log('TNT Explodes:' , tntexplodesvalue);
+	bedsexplodevalue = world.gameRules.respawnBlocksExplode;
+	console.log('Beds Explode:' , bedsexplodevalue);
+	instarespawnvalue = world.gameRules.doImmediateRespawn;
+	console.log('Instant Respawn:' , instarespawnvalue);
+	moblootvalue = world.gameRules.doMobLoot;
+	console.log('Mob Loot:' , moblootvalue);	
+	// Cheats
+	mobspawnvalue = world.gameRules.doMobSpawning;
+	console.log('Mob Spawning:' , mobspawnvalue);	
+	mobgriefvalue = world.gameRules.mobGriefing;
+	console.log('Mob Griefing:' , mobgriefvalue);		
+	naturalgregenvalue = world.gameRules.naturalRegeneration;
+	console.log('Natural Health Regen:' , naturalgregenvalue);	
+
+	if 
+	(world.gameRules.doDayLightCycle == false && (currentclocktimevalue >= 1000 && currentclocktimevalue <= 13000) || currentclocktimevalue >= 23000)
+	{alwaysdayvalue = true} {alwaysdayvalue = false};
+	console.log('Always Day:' , alwaysdayvalue);	
+	
+	daycyclevalue = world.gameRules.doDayLightCycle;
+	console.log('Day Cycle:' , daycyclevalue);	
+  weathercyclevalue = world.gameRules.doWeatherCycle;
+	console.log('Weather Cycle:' , weathercyclevalue);	
+	keepinventoryvalue = world.gameRules.keepInventory;
+	console.log('Keep Inventory:' , keepinventoryvalue);	
+	randomtickvalue = world.gameRules.randomTickSpeed;
+	console.log('Random Tick Speed:' , randomtickvalue);
+	// Hidden
+	drowningvalue = world.gameRules.drowningDamage;
+	console.log('Drowning Damage:' , drowningvalue);	
+	falldmgvalue = world.gameRules.fallDamage;
+	console.log('Fall Damage:' , falldmgvalue);	
+	firedmgvalue = world.gameRules.fireDamage;
+	console.log('Burning Damage:' , firedmgvalue);	
+	freezedmgvalue = world.gameRules.freezeDamage;
+	console.log('Freezing Damage:' , freezedmgvalue);	
+	insomniavalue = world.gameRules.doInsomnia;
+	console.log('Insomnia:' , insomniavalue);	
+	playersleepvalue = world.gameRules.playersSleepingPercentage;
+	console.log('Player Sleep %:' , playersleepvalue);	
+	projbreakblocksvalue = world.gameRules.projectilesCanBreakBlocks;
+	console.log('Projectiles Break:' , projbreakblocksvalue);	
+	showbordervalue = world.gameRules.showBorderEffect;
+	console.log('Show Border:' , showbordervalue);
+	showdeathsvalue = world.gameRules.showDeathMessages;
+	console.log('Show Death Messages:' , showdeathsvalue);
+	showtagsvalue = world.gameRules.showTags;
+	console.log('Show Tags:' , showtagsvalue);
+
+	// Reset Gamerules
+	overworld.runCommandAsync(`gamerule mobGriefing ${mobgriefvalue}`); // disable creepers blowing up the arena	
+	// overworld.GameRules.mobGriefing = mobgriefvalue;
+	// world.gameRules.keepInventory = {keepinventoryvalue};
 });
