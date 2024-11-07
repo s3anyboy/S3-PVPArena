@@ -1,2 +1,3 @@
-import './ScoreboardHandler.js'
+import './PVPScoreboardHandler.js'
+import './PVPChatCommandHandler.js';
 import './PVPArenaHandler.js';

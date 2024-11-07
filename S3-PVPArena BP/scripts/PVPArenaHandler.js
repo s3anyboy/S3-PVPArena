@@ -1,31 +1,19 @@
 import { world, system, GameRules, GameRule, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
 
-import { allkillsObjective, hostilekillsObjective, bosskillsObjective, elderkillsObjective, dragonkillsObjective, wardenkillsObjective, witherkillsObjective, playerkillsObjective, pvpkillsObjective, customkillsObjective } from './ScoreboardHandler.js';
-// import { currentpvpmatchkillsObjective } from './ScoreboardHandler.js';
-import { scoreboards } from './ScoreboardHandler.js';
-// import { * } from './PVPUserConfig.js';
+// import { allkillsObjective, hostilekillsObjective, bosskillsObjective, elderkillsObjective, dragonkillsObjective, wardenkillsObjective, witherkillsObjective, playerkillsObjective,
+// pvpkillsObjective, 
+// customkillsObjective } from './PVPScoreboardHandler.js';
+// import * as scoreboardhandler from './PVPScoreboardHandler.js';
+// import { trackers } from './PVPScoreboardHandler.js';
+
+import * as tracker from './PVPScoreboardHandler.js';
+import * as chat from './PVPChatCommandHandler.js';
 import * as config from './PVPUserConfig.js';
-// import { obj , objective} from './ScoreboardHandler.js';
 
 
-// Gamemode Switch Command
-world.beforeEvents.chatSend.subscribe((eventData) => {
-	const player = eventData.sender;
-	switch (eventData.message) {
-		case '!gmc':
-			eventData.cancel = true;
-			player.runCommandAsync('gamemode c');
-			break;
-		case '!gms':
-			eventData.cancel = true;
-			player.runCommandAsync('gamemode s');
-			break;
-		default: break;
-	}
-});
 
-const arenaDimension = world.getDimension("minecraft:overworld");
-const overworld = world.getDimension("minecraft:overworld");
+export const arenaDimension = world.getDimension("minecraft:overworld");
+export const overworld = world.getDimension("minecraft:overworld");
 
 // global variables
 export let curTick = 0;
@@ -33,7 +21,13 @@ export let curTick = 0;
 export var pvp_started = false;
 
 export var currentobjective;
+export var currentpvpobjective;
 export var currentmatchkills;
+export var currentscore;
+export var highscore;
+export var matchhighscoreplayer;
+export var matchhighscoreplayername;
+
 // GAMEMODES
 export var teams = false;
 
@@ -63,147 +57,99 @@ export var pvpscoreObjective = world.scoreboard.getObjective("Score");
 
 export var pvpplayercount = 0;
 
-var sender;
-// Chat Command Handler
-	
-world.beforeEvents.chatSend.subscribe((chatData) => {
-
-    sender = chatData.sender;
-    const message = chatData.message;
-    if (message == "!arena") //return 
-		{
-		chatData.cancel = true;
-    system.run(() => {
-      sender.teleport(
-      { x: config.ARENA_X_LOC, y: config.ARENA_Y_LOC, z: config.ARENA_Z_LOC },
-      { dimension: overworld, rotation: { x: 0, y: 0 }, }
-			);
-			})
-		}
-
-	// PVP Initialization Setup
-    if (message == "!pvp" || message == "!PVP" || message == "!pvpinit" || message == "!pvpsetup" || message == "!PVPINIT"|| message == "!PVPSETUP"|| message == "!setup" || message == "!SETUP") //
-		{
-		chatData.cancel = true;
-    system.run(() => {
-      world.sendMessage(`§4${"PVP INITIALIZED"}`);
-      world.sendMessage(`§4${"Type !join in chat to join the upcoming PVP match."}`);
-			joinPVP();
-			})
-		}
-		
-	// PVP Joining
-    if (message == "!join" || message == "!JOIN" || message == "!joinpvp" || message == "!JOINPVP")  
-		{
-		chatData.cancel = true;
-    system.run(() => {
-      sender.sendMessage(`§4${"You have joined the PVP match. It will begin shortly."}`);
-			sender.addTag('s3:pvp');
-			})
-		} 
-		
-		// PVP Leave
-		if (message == "!leave" || message == "!LEAVE" || message == "!leavepvp" || message == "!LEAVEPVP" || message == "!quit" || message == "!QUIT" || message == "!quitpvp" || message == "!QUITPVP")  
-		{
-		chatData.cancel = true;
-    system.run(() => {
-      sender.sendMessage(`§4${"You have left the PVP match."}`);
-			sender.removeTag('s3:pvp');
-			})
-		}
-
-		// PVP Spectate
-		if (message == "!watch" || message == "!WATCH" || message == "!watchpvp" || message == "!WATCHPVP" || message == "!spectate" || message == "!SPECTATE" || message == "!spectatepvp" || message == "!SPECTATEPVP") 
-		{
-		chatData.cancel = true;
-    system.run(() => {
-      sender.sendMessage(`§4${"You are spectating the PVP match."}`);
-			sender.removeTag('s3:pvp');
-			sender.addTag('s3:spectator');
-			})
-		}	
-		
-		// PVP Gamemode Select
-		if (message == "!slayer" || message == "!SLAYER" || message == "!dm" || message == "!DM" )  
-		{
-		chatData.cancel = true;
-    system.run(() => {
-		slayer = true	
-		console.log('SLAYER:' , slayer)
-		world.sendMessage(`§4${"The current gametype is SLAYER."}`);
-			})
-		}
-
-		// PVP Start/Ending
-		if (message == "!startpvp" || message == "!STARTPVP" ||message == "!pvpstart" || message == "!PVPSTART" || message == "!beginpvp" || message == "!BEGINPVP" || message == "!pvpbegin" || message == "!PVPBEGIN" || message == "!START" || message == "!start" )  
-		{
-		chatData.cancel = true;
-    system.run(() => {
-			// countplayersPVP();
-			joinPVP();
-			console.log('PVP Player Count:' , pvpplayercount)
-			if (slayer == true)
-			{
-      world.sendMessage(`§4${"The PVP match is beginning."}`);
-			initializeSlayer();
-			return
-			}
-			else
-			{
-      world.sendMessage(`§4${"No Gametype Selected. Defaulting to Slayer"}`);
-			slayer = true;
-			console.log('SLAYER:' , slayer)
-			initializeSlayer();
-			return
-			}
-			})
-		}
-		
-		if (message == "!stoppvp" || message == "!STOPPVP" || message == "!pvpstop" || message == "!PVPSTOP" || message == "!stop" || message == "!STOP" || message == "!endpvp" || message == "!ENDPVP" || message == "!pvpend" || message == "!PVPEND" || message == "!END" || message == "!end" ) //return 
-		{
-		chatData.cancel = true;
-    system.run(() => {
-      
-			stopPVP();
-			clearPVP();
-			})
-		}
-
-		
-});
-
 
 // PVP Functions
 
 // JoinPVP function
-function joinPVP() {
+export function joinPVP() {
 	const players = world.getAllPlayers();
 
   for (const player of players) {
-		sender.sendMessage(`§4${"You have joined the PVP match. It will begin shortly."}`);
-		sender.addTag('s3:pvp');
+		chat.sender.sendMessage(`§4${"You have joined the PVP match. It will begin shortly."}`);
+		chat.sender.addTag('s3:pvp');
 		pvpplayercount = (pvpplayercount +1);
 	}
 }
 
 // StopPVP function
-function stopPVP() {
-	
+export function stopPVP() {
+	if (pvp_started == true)
+	{
+		pvp_started = false;
 		world.sendMessage(`§4${"The PVP match is ending."}`);
-		log.console('PVP MATCH ENDING');
+		console.log('PVP MATCH ENDING');
 		
-		//Reset Gamerules
+		const pvpplayers = world.getAllPlayers();
+  // pvpplayercount = pvpplayers.hasTag('s3:pvp')?.length;
+
+	highscore = -1
+  for (const player of pvpplayers) {	
+		if (player.hasTag('s3:pvp'))
+		{	
+		// highscore = currentobjective.getScore(participant:);
+		currentscore = currentobjective.getScore(player);
+		console.log("Current Score:" , [currentscore] , [player.nameTag]);
+		// player.sendMessage( , {currentscore});
+		player.sendMessage("Match Score:");
+		player.sendMessage(`${[currentscore]}`);
+			if (currentscore > highscore) 
+			{
+				highscore = currentobjective.getScore(player);
+				
+				matchhighscoreplayer = player;
+				matchhighscoreplayername = matchhighscoreplayer.name;
+				console.log("New High Score:" , [highscore] , [matchhighscoreplayer.nameTag]);
+			}
+		console.log("Current High Score:" , [highscore]);
+		}
+	}
+	
+		// Ending Announcements
+		console.log('PVP MATCH ENDED');
+		console.log('WINNER:' , [matchhighscoreplayer.nameTag] );
+		world.sendMessage(`§4${"The PVP match has ended."}`);
+		world.sendMessage(`§gThe Winner is: ${[matchhighscoreplayer.nameTag]}`);
+		
+		// Match Win Tracker 
+		if ( pvpplayercount > 1)
+			{
+			tracker.totalpvpmatchwinsObjective.addScore(matchhighscoreplayer, 1);
+			console.log([matchhighscoreplayer.nameTag] , "TOTAL WINS UPDATED");
+			console.log([matchhighscoreplayer.nameTag] , "TOTAL WINS:" , [tracker.totalpvpmatchwinsObjective.getScore(matchhighscoreplayer)]);		
+			world.sendMessage(`§g${[matchhighscoreplayer.nameTag]} TOTAL WINS: ${[tracker.totalpvpmatchwinsObjective.getScore(matchhighscoreplayer)]}`);
+			}
+		if (pvpplayercount < 1 || highscore <= 0)
+			{
+			world.sendMessage(`§4${"Too few players or points for win tracking."}`);	
+			}
+		
+		system.run(() => {tracker.showWins()});
+		console.log("SHOW PVP WINS");
+		// Reset Gamerules
+		// TODO run a function to set all the gametype options
 		overworld.runCommandAsync(`gamerule mobGriefing ${mobgriefvalue}`); // disable creepers blowing up the arena
+		
+		clearPVP(); // run function to clear PVP tags
+	}
+	{
+	console.log("PVP MATCH NOT STARTED");
+	}
 }
 
 // Clear function - clear pvp tags
-function clearPVP() {
+export function clearPVP() {
 	const players = world.getAllPlayers();
 
   for (const player of players) {
 		player.removeTag('s3:pvp')
 		player.removeTag('s3:spectator')
 	}
+	pvpplayercount = 0
+	
+	
+	system.runTimeout(() => {
+		tracker.refreshDisplay();
+		}, 500);
 }
 
 // Clear old pvp tags after server reset
@@ -212,9 +158,26 @@ world.afterEvents.worldInitialize.subscribe((startup) => {
 		// world.scoreboard.removeObjective( "currentpvpmatchkills");
 });
 
+// Gametype Checker
+export function gametypeCheck() {
+		console.log('CHECKING GAMETYPE')
+		if ( slayer == true )
+		{
+		console.log('SLAYER:' , slayer);
+		console.log('The current gametype is SLAYER.');
+		currentobjective = world.scoreboard.getObjective("currentpvpmatchkills");
+		}
+}
+
 
 // Slayer
-function initializeSlayer() {
+export function setupSlayer() {
+		slayer = true;
+		console.log('SLAYER:' , slayer)
+		world.sendMessage(`§4${"The current gametype is SLAYER."}`);
+}
+
+export function initializeSlayer() {
 
 	pvp_started = true;
 	
@@ -228,27 +191,34 @@ function initializeSlayer() {
     // currentpvpmatchkillsObjective = world.scoreboard.addObjective(objectiveId: "currentpvpmatchkills", displayName?: "Current PVP Match Kills:");
 		// }
 
-		//add new objective
-		if (!currentmatchkills) {
-		world.scoreboard.removeObjective( "currentpvpmatchkills"); // Remove old scoreboard objective
-    world.scoreboard.addObjective( "currentpvpmatchkills", "Current Match Kills:");
-		}
+	
+		// }
+		// currentpvpobjective = tracker.trackers.currentpvpmatchkills.objective; // set currentobjective to match the gametype
+		currentpvpobjective = world.scoreboard.getObjective("currentpvpmatchkills"); // set currentobjective to match the gametype
+		console.log("Current PVP Objective:" , currentpvpobjective);
+		// currentmatchkills = currentpvpobjective.objective; //.getScores();
 		
-		currentobjective = world.scoreboard.getObjective("currentpvpmatchkills");
-		currentmatchkills = currentobjective.getScores();
+		//add new objective
+		if (!currentpvpobjective) {
+		console.log("currentpvpobjective missing")
+		}
+		// Remove old pvpkills scoreboard objective
+		world.scoreboard.removeObjective( tracker.trackers.currentpvpmatchkills.objective );
+		// Add new pvpkills scoreboard objective
+    world.scoreboard.addObjective(tracker.trackers.currentpvpmatchkills.objective, tracker.trackers.currentpvpmatchkills.display);
 
-		// objective.removeParticipant("currentpvpmatchkills");
-
-		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: currentobjective, sortOrder: ObjectiveSortOrder.Descending, });
-		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: currentobjective, sortOrder: ObjectiveSortOrder.Descending, });
+		// Display the current objective as the scoreboard
+		// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: currentpvpobjective.objective, sortOrder: ObjectiveSortOrder.Descending, });	
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.currentpvpmatchkillsObjective, sortOrder: ObjectiveSortOrder.Descending, });
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.currentpvpmatchkillsObjective, sortOrder: ObjectiveSortOrder.Descending, });
 
   const pvpplayers = world.getAllPlayers();
-  // const pvpplayers = players.hasTag('s3:pvp');
+  // pvpplayercount = pvpplayers.hasTag('s3:pvp')?.length;
 
   for (const player of pvpplayers) {	
 		if (slayer == true && player.hasTag('s3:pvp'))
 		{	
-		
+		currentobjective = world.scoreboard.getObjective("currentpvpmatchkills");
 		player.setGameMode(0);
 		currentobjective.setScore(player, 0);
     // let inv = player.getComponent("inventory"); // as EntityInventoryComponent;
@@ -267,6 +237,8 @@ function initializeSlayer() {
 
 		if (slayer == true && !player.hasTag('s3:pvp'))
 		{	
+		currentobjective = world.scoreboard.getObjective("currentpvpmatchkills");
+		// world.scoreboard.removeParticipant(player);
 		currentobjective.removeParticipant(player);
 		}
 		
@@ -282,7 +254,6 @@ world.afterEvents.entityDie.subscribe((kill) => {
 
 	if (pvp_started == true)
 	{
-		console.log("PVP Started:", pvp_started);
 	
 		if (slayer == true)
 		{
@@ -290,19 +261,45 @@ world.afterEvents.entityDie.subscribe((kill) => {
 			return;
 			}
 			if (target.typeId == "minecraft:player"  && target.hasTag('s3:pvp') && attacker.typeId == "minecraft:player" && attacker.hasTag('s3:pvp')) {
+			console.log("PVP Started:", pvp_started);
 			console.log("PVP Kill");
-			// world.scoreboard.getObjective("currentpvpmatchkills")?.addScore(attacker, 1);
-			currentobjective.addScore(attacker, 1);
+			currentpvpobjective.addScore(attacker, 1);
 			}
 		}
 	}
 	else 
 	{
-		console.log("PVP Started:", pvp_started);
+		// console.log("PVP Started:", pvp_started);
 	}
 });
 
-// function gameTick() {
+// Slayer Score Handler
+// world.afterEvents.entityDie.subscribe((kill) => {
+  // const attacker = kill.damageSource.damagingEntity;
+	// const target = kill.deadEntity;
+
+	// if (pvp_started == true)
+	// {
+	
+		// if (slayer == true)
+		// {
+			// if (!target || target.typeId !== "minecraft:player") {
+			// return;
+			// }
+			// if (target.typeId == "minecraft:player"  && target.hasTag('s3:pvp') && attacker.typeId == "minecraft:player" && attacker.hasTag('s3:pvp')) {;
+			// currentpvpobjective.getScore(attacker, 1);
+			// }
+		// }
+	// }
+	// else 
+	// {
+		// console.log("PVP Started:", pvp_started);
+	// }
+// });
+
+
+// GAME TICK
+// export function gameTick() {
   // try {
     // curTick++;
 

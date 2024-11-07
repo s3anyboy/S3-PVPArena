@@ -1,0 +1,24 @@
+import * as config from './PVPUserConfig.js';
+
+// TEAM LIST INDEX/NAME
+// 0 RED_TEAM 
+// 1 BLUE_TEAM
+// 2 GREEN_TEAM
+// 3 YELLOW_TEAM
+// 4 PURPLE_TEAM
+// 5 ORANGE_TEAM
+// 6 BLACK_TEAM
+// 7 WHITE_TEAM
+
+// ZOMBIE_TEAM // PVP Firefight Versus and PVP Zombies
+// JUGG_TEAM // Juggernaut
+// SPECTATOR_TEAM // NOT REAL TEAM DONTUSE
+
+// TODO RANDOM TEAM VALIDATOR
+// export var VALID_RANDOM_TEAM = [
+	// RED_TEAM,
+	// BLUE_TEAM,
+	// GREEN_TEAM
+	
+	
+// ]
