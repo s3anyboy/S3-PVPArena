@@ -1,0 +1,18 @@
+// {
+  // "resource_pack_name": "s3",
+  // "texture_name": "s3pvp.armor",
+	// "texture_data": {
+		// "pvp_helmet": {
+			// "textures": ["textures/items/pvp_helmet"]
+		// },
+		// "pvp_chestplate": {
+			// "textures": ["textures/items/pvp_chestplate"]
+		// },
+		// "pvp_leggings": {
+			// "textures": ["textures/items/pvp_leggings"]
+		// },
+		// "pvp_boots": {
+			// "textures": ["textures/items/pvp_boots"]
+		// }
+	// }
+// }

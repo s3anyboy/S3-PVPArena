@@ -41,10 +41,11 @@
 	"dependencies": [
 		{
 			"module_name": "@minecraft/server",
-			"version": "1.16.0-beta"
+			"version": "1.16.0-beta" // Uses BETAAPI
 		},
+// Resource Pack Dependency
 		{
-			"uuid": "b7f90952-bdb0-4053-b508-30279a7400c8",
+			"uuid": "80cec800-2759-401e-a5be-1ee6133c55ce",
 			"version": [
 				1,
 				0,

@@ -111,7 +111,8 @@ export function stopPVP() {
 		world.sendMessage(`§gThe Winner is: ${[matchhighscoreplayer.nameTag]}`);
 		
 		// Match Win Tracker 
-		if ( pvpplayercount > 1)
+		// TODO convert to function
+		if ( pvpplayercount > 1 && highscore > 0)
 			{
 			tracker.totalpvpmatchwinsObjective.addScore(matchhighscoreplayer, 1);
 			console.log([matchhighscoreplayer.nameTag] , "TOTAL WINS UPDATED");
@@ -122,6 +123,8 @@ export function stopPVP() {
 			{
 			world.sendMessage(`§4${"Too few players or points for win tracking."}`);	
 			}
+		// system.run(() => {matchWin()});
+		// TODO convert to function		
 		
 		system.run(() => {tracker.showWins()});
 		console.log("SHOW PVP WINS");
@@ -208,7 +211,6 @@ export function initializeSlayer() {
     world.scoreboard.addObjective(tracker.trackers.currentpvpmatchkills.objective, tracker.trackers.currentpvpmatchkills.display);
 
 		// Display the current objective as the scoreboard
-		// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: currentpvpobjective.objective, sortOrder: ObjectiveSortOrder.Descending, });	
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.currentpvpmatchkillsObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.currentpvpmatchkillsObjective, sortOrder: ObjectiveSortOrder.Descending, });
 

@@ -19,12 +19,14 @@ export var hostileMobs = [
   "minecraft:magma_cube",
   "minecraft:phantom",
   "minecraft:piglin",
+  "minecraft:piglin_brute",
   "minecraft:pillager",
   "minecraft:ravager",
   "minecraft:shulker",
   "minecraft:silverfish",
   "minecraft:skeleton",
   "minecraft:slime",
+  "minecraft:spider",
   "minecraft:stray",
   "minecraft:vex",
   "minecraft:vindicator",
@@ -82,6 +84,43 @@ export var trackers = {
   customkills: {
     objective: "customkills",
     display: "Custom Kills"
+  },
+	
+// Non Kill Trackers
+	playerdeaths: {
+    objective: "playerdeaths",
+    display: "Player Deaths"
+  },
+	
+	totaldeaths: {
+    objective: "totaldeaths",
+    display: "Total Deaths"
+  },
+	
+		playerdistance: {
+    objective: "playerdistance",
+    display: "Total Distance"
+  },	
+		playerdistancewalk: {
+    objective: "playerdistancewalk",
+    display: "Walk Distance"
+  },
+		playerdistanceswim: {
+    objective: "playerdistanceswim",
+    display: "Swim Distance"
+  },
+		playerdistanceride: {
+    objective: "playerdistanceride",
+    display: "Ride Distance"
+  },
+	playerdistanceglide: {
+    objective: "playerdistanceglide",
+    display: "Glide Distance"
+  },
+
+		playerdistancefly: {
+    objective: "playerdistancefly",
+    display: "Fly Distance"
   },
 
 // PVP Kills tracker
@@ -141,8 +180,24 @@ export var witherkillsObjective = world.scoreboard.getObjective("witherkills");
 
 export var customkillsObjective = world.scoreboard.getObjective("customkills");
 export var playerkillsObjective = world.scoreboard.getObjective("playerkills");
+
+export var playerdeathsObjective = world.scoreboard.getObjective("playerdeaths"); // Player deaths (excluding pvp arena)
+export var totaldeathsObjective = world.scoreboard.getObjective("totaldeaths"); // Total player death (including PVP)
+export var currentdeaths = 0; // used for calculating deaths
+
+
+// Non Kill Trackers
+// export var playerdistanceObjective = world.scoreboard.getObjective("playerdistance"); // Add the others together
+// export var playerdistancewalkObjective = world.scoreboard.getObjective("minecraft.custom:minecraft.walk_one_cm");
+// export var playerdistanceswimObjective = world.scoreboard.getObjective("minecraft.custom:swim_one_cm");
+// export var playerdistancerideObjective = world.scoreboard.getObjective("playerdistanceride");
+// export var playerdistanceglideObjective = world.scoreboard.getObjective("playerdistanceglide");
+// export var playerdistanceflyObjective = world.scoreboard.getObjective("playerdistancefly");
+
 // PVP Arena Specific Objectives
 export var currentpvpmatchkillsObjective = world.scoreboard.getObjective("currentpvpmatchkills");
+export var currentpvpmatchdeathsObjective = world.scoreboard.getObjective("currentpvpmatcdeaths");
+export var totalpvpmatchdeathsObjective = world.scoreboard.getObjective("totalpvpmatchkills"); // Total PVP deaths
 export var totalpvpmatchkillsObjective = world.scoreboard.getObjective("totalpvpmatchkills");
 export var pvpmobkillsObjective = world.scoreboard.getObjective("pvpmobkills");
 export var totalpvpmatchwinsObjective = world.scoreboard.getObjective("totalpvpmatchwins");
@@ -150,22 +205,76 @@ export var ctfscoreObjective = world.scoreboard.getObjective("ctfscore");
 
 
 
+// Death Counters
+world.afterEvents.entityDie.subscribe((death) => {
+
+  const player = "minecraft:player";
+	const victim = death.deadEntity;
+  const victimname = death.deadEntity.nameTag;
+  const victimid = death.deadEntity.typeId;
+  const friendlyname = victimid.replace("minecraft:", "").replace("_", " ").replace("v2", "");
+	var attacker = death.damageSource.damagingEntity;
+	  if (!attacker ) {attacker = victim}
+	
+	if (victimid == "minecraft:player")
+		// console.log("Player" , victimname , "died");
+		// Death tracker		
+		{
+		if (attacker.hasTag('s3:pvp') && victim.hasTag('s3:pvp') && pvp_started == true) // PVP Death
+		{
+			console.log("Player" , victimname , "died in a PVP match");
+			totalpvpmatchdeathsObjective?.addScore(victim, 1);
+		}
+		if (victimid == "minecraft:player" && !attacker.hasTag('s3:pvp') && !victim.hasTag('s3:pvp')) // Non PVP Death
+		{
+			console.log("Player" , victimname , "died");
+			playerdeathsObjective?.addScore(victim, 1);
+			// Death Announcer
+			currentdeaths = 0;
+			currentdeaths = playerdeathsObjective?.getScore(victim);
+				if (currentdeaths == 1)
+				{
+					world.sendMessage(`§4${[victim.nameTag]} died for the first time!`); // Announce first death
+					console.log("Player" , victimname , "died for the first time.");
+				}
+				if (config.showdeathboard == true) {
+					showDeaths(); // Show Death Count Function
+					system.runTimeout(() => {refreshDisplay();}, 500);
+				}
+		}
+		}
+			
+});
+
 // Kill Counters
 world.afterEvents.entityDie.subscribe((death) => {
-  const attacker = death.damageSource.damagingEntity;
+
+
+	const attacker = death.damageSource.damagingEntity;
   const player = "minecraft:player";
-	console.log ("Entity killed");
+	if (!attacker || attacker.typeId !== player	) {return;}
+  const tags = attacker.getTags();
 	
-  if (!attacker || attacker.typeId !== player) {
-    return;
-  }
-	
-  const victim = death.deadEntity;
+	const victim = death.deadEntity;
   const victimname = death.deadEntity.nameTag;
   const id = death.deadEntity.typeId;
   const friendlyname = id.replace("minecraft:", "").replace("_", " ").replace("v2", "");
+	
 
-  const tags = attacker.getTags();
+	console.log ("Entity killed");
+	
+
+	if (id == "minecraft:player")
+	{
+		
+		// Player Kill Counter
+		if (id == "minecraft:player") {
+			console.log(attacker.nameTag , "killed Player" , victimname);
+			playerkillsObjective?.addScore(attacker, 1);
+		}
+		
+
+	}
 	
 	// Hostile Mob Counter
   if (hostileMobs.indexOf(id) > -1) {
@@ -175,37 +284,39 @@ world.afterEvents.entityDie.subscribe((death) => {
 
   }
 
-	// Boss Mob Counter
+	// Boss Mob Counters
   if (bossMobs.indexOf(id) > -1) {		
 		console.log(attacker.nameTag , "killed a Boss!");
 		// world.sendMessage(`§4${attacker.nameTag , "killed a Boss!"}`);
     bosskillsObjective?.addScore(attacker, 1);
-  }
-
-	// Elder Guardian Counter
-  if (bossMobs.indexOf(id) == 0) {
+		
+			// Elder Guardian Counter
+		if (bossMobs.indexOf(id) == 0) {
 		console.log(attacker.nameTag , "killed Elder Guardian");
 		world.sendMessage(`§g${[attacker.nameTag]} killed Elder Guardian`);
     elderkillsObjective?.addScore(attacker, 1);
-  } 
-	// Ender Dragon Counter
-  if (bossMobs.indexOf(id) == 1) {
+		} 
+		// Ender Dragon Counter
+		if (bossMobs.indexOf(id) == 1) {
 		console.log(attacker.nameTag , "killed The Ender Dragon");
 		world.sendMessage(`§g${[attacker.nameTag]} killed the Ender Dragon`);
     dragonkillsObjective?.addScore(attacker, 1);
-  }
-	// Warden Counter
-  if (bossMobs.indexOf(id) == 2) {
+		}
+		// Warden Counter
+		if (bossMobs.indexOf(id) == 2) {
 		console.log(attacker.nameTag , "killed Warden");
 		world.sendMessage(`§g${[attacker.nameTag]} killed Warden`);
     wardenkillsObjective?.addScore(attacker, 1);
-  }
-	// Wither Counter
-  if (bossMobs.indexOf(id) == 3) {
+		}
+		// Wither Counter
+		if (bossMobs.indexOf(id) == 3) {
 		console.log(attacker.nameTag , "killed Wither");
 		world.sendMessage(`§g${[attacker.nameTag]} killed Wither`);
     witherkillsObjective?.addScore(attacker, 1);
-  }	
+		}	
+  }
+
+
 	
 	// PVP Bot Kill Counter (PVP Bots)
   if (pvpMobs.indexOf(id) > -1) {
@@ -213,11 +324,7 @@ world.afterEvents.entityDie.subscribe((death) => {
     pvpmobkillsObjective?.addScore(attacker, 1);
   }
 	
-	// Player Kill Counter
-  if (id == "minecraft:player") {
-		console.log(attacker.nameTag , "killed Player" , victimname);
-    playerkillsObjective?.addScore(attacker, 1);
-  }
+
 	
 	// CurrentMatch Kill Counter
   // if (tags.indexOf(id) > -1) {
@@ -245,16 +352,19 @@ world.afterEvents.entityDie.subscribe((death) => {
 		}
 
 
+	
   // world.scoreboard.getObjective(tracker.allkills.objective)?.addScore(attacker, 1);
 	
 });
 
+
+// Distance trackers
+// TODO implement new distance trackers
+// scoreboard objectives add (score name) minecraft.custom:minecraft.walk_one_cm // statistics dont work in Bedrock
+
 // World initialize tracker
 world.afterEvents.worldInitialize.subscribe((startup) => {
-		// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: allkillsObjective, });
-		// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: allkillsObjective, });
 		refreshDisplay()
-		
 });
 		
 		
@@ -288,13 +398,11 @@ world.beforeEvents.playerLeave.subscribe((quitter) => {
 system.run(initializeScoreboard);
 
 export async function initializeScoreboard() {
+	console.log('Initializing Scoreboard');
   for (let key in trackers) {
     const obj = trackers[key];
     // const objective = world.scoreboard.getObjective(obj.objective);
-		// if (obj.objective.length > 16) {
-      // obj.objective = obj.objective.slice(0, 17);
-    // }
-		
+
     if (world.scoreboard.getObjective(obj.objective)) {
       continue;
     }
@@ -302,9 +410,11 @@ export async function initializeScoreboard() {
     const objective = world.scoreboard.addObjective(obj.objective, obj.display);
     world.getAllPlayers().forEach((p) => {
       objective.setScore(p, 0);
+		console.log('Initializing' , [obj.display]);
     });
 		
   }
+			system.runTimeout(() => { refreshDisplay() }, 200);	
 }
 
 
@@ -312,23 +422,24 @@ export async function clearScoreboard() {
   for (let key in trackers) {
     const obj = trackers[key];
     const objective = world.scoreboard.getObjective(obj.objective);
-		// if (obj.objective.length > 16) {
-      // obj.objective = obj.objective.slice(0, 17);
-    // }
-		
-    // if (world.scoreboard.getObjective(obj.objective)) {
-      // continue;
-    // }
-		
-    // const objective = world.scoreboard.addObjective(obj.objective, obj.display);
-    world.getAllPlayers().forEach((player) => {
-    objective.removeParticipant(player);
-		console.log('Removing players from scoreboard list');
-    });
+		const player = world.scoreboard.getParticipants();
+
+
+    world.scoreboard.removeObjective(objective);
+		console.log('Removing all objectives from scoreboard list');
+
+    // objective.removeParticipant(id: player);
+		// console.log('Removing all players from scoreboard list');
+    // world.getAllPlayers().forEach((player) => {
+    // objective.removeParticipant(player);
+		// console.log('Removing players from scoreboard list');
+    // });
 		
   }
 	
-	initializeScoreboard();
+	system.run(() => {
+    initializeScoreboard();	
+	})	
 }
 
 // Set Scorboard Display back to default 
@@ -339,11 +450,18 @@ export async function refreshDisplay() {
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: allkillsObjective, });
 }
 
-// Temporarily show PVPWins
+// Show PVPWins
 export async function showWins() {
 		console.log("SHOWING PVP WINS");
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: totalpvpmatchwinsObjective, });
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: totalpvpmatchwinsObjective, });
+}
+
+// Show Deaths
+export async function showDeaths() {
+		console.log("SHOWING DEATHS");
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: playerdeathsObjective, });
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: playerdeathsObjective, });
 }
 
 // Chat Logging (Private)

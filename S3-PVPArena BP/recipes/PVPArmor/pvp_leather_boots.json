@@ -1,0 +1,23 @@
+{
+  "format_version": "1.12",
+  "minecraft:recipe_shaped": {
+    "description": {
+    "identifier": "s3:pvp_boots"
+    },
+
+    
+    "tags": [ "crafting_table" ],
+    "pattern": [
+      "X X",
+      "X X"
+    ],
+    "key": {
+      "X": {
+        "item": "minecraft:leather"
+      }
+    },
+    "result": {
+      "item": "s3:pvp_boots"
+    }
+  }
+}

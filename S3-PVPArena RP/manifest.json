@@ -1,0 +1,45 @@
+{
+	"format_version": 2,
+	"metadata": {
+		"authors": [
+			"S3anyBoy"
+		]
+	},
+	"header": {
+		"name": "[S3]PVPArena",
+		"description": "[S3]PVPArena",
+		"min_engine_version": [
+			1,
+			21,
+			0
+		],
+		"uuid": "80cec800-2759-401e-a5be-1ee6133c55ce",
+		"version": [
+			1,
+			0,
+			0
+		]
+	},
+	"modules": [
+		{
+			"type": "resources",
+			"uuid": "dbcd7b2d-cbf7-4626-acee-51accb34064b",
+			"version": [
+				1,
+				0,
+				0
+			]
+		}
+	],
+	"dependencies": [
+// DATA PACK DEPENDENCY
+		{
+			"uuid": "e646d4ce-0bf5-4fe8-8d96-f7fe833f4c07",
+			"version": [
+				1,
+				0,
+				0
+			]
+		}
+	]
+}

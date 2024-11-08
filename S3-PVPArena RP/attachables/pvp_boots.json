@@ -1,0 +1,24 @@
+{
+	"format_version": "1.8.0",
+	"minecraft:attachable": {
+		"description": {
+			"identifier": "s3:pvp_boots",
+			"materials": {
+				"default": "armor",
+				"enchanted": "armor_enchanted",
+				"dyed": "entity_alphatest_change_color"
+			},
+			"textures": {
+				"default": "textures/models/armor/leather_1",
+				"enchanted": "textures/misc/enchanted_item_glint"
+			},
+			"geometry": {
+				"default": "geometry.player.armor.boots"
+			},
+			"scripts": {
+				"parent_setup": "variable.chest_layer_visible = 0.0;"
+			},
+			"render_controllers": ["controller.render.armor"]
+		}
+	}
+}

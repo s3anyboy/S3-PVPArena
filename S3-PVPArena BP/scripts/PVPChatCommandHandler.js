@@ -24,7 +24,7 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		})
 		}
 
-    if (message == "!hostilekillcounter" || message == "!hostilekillcount") // 
+    if (message == "!hostilekillcounter" || message == "!hostilekillcount"|| message == "!hostilekills") // 
 		{
 		chatData.cancel = true;
     system.run(() => {
@@ -86,7 +86,7 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		})
 		}
 
-		// tracker.Player Kill Counters
+		// PVP Player Kill Counters
     if (message == "!playerkillcounter" || message == "!playerkillcount"|| message == "!pkcount") // 
 		{
 		chatData.cancel = true;
@@ -102,12 +102,37 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		{
 		chatData.cancel = true;
     system.run(() => {
-      sender.sendMessage(`§4${"Personal PVP Kill Counter"}`);
+      sender.sendMessage(`§4${"Personal PVP Match Kill Counter"}`);
 			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalpvpmatchkillsObjective, });
 			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalpvpmatchkillsObjective, });
 			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.BelowName, { objective: tracker.totaltracker.atchkillsObjective, });
 		})
-		}	
+		}		
+    
+		// Non Kill Counters
+		if (message == "!deaths" || message == "!DEATHS") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Death Counter"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.playerdeathsObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.playerdeathsObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.BelowName, { objective: tracker.totaltracker.atchkillsObjective, });
+		})
+		}		
+    
+		// Distance Tracking doesn't work in Bedrock natively
+		// if (message == "!distance" || message == "!distance") // 
+		// {
+		// chatData.cancel = true;
+    // system.run(() => {
+      // sender.sendMessage(`§4${"Personal Distance Travelled"}`);
+			// console.log(tracker.playerdistancewalkObjective);
+			// console.log(world.scoreboard.getObjective("minecraft.custom:minecraft.walk_one_cm"));
+			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.playerdistancewalkObjective, });
+			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.playerdistancewalkObjective, });
+		// })
+		// }	
 		
 		
 	// TRACKER DEBUG CHAT COMMANDS
@@ -155,7 +180,7 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		})
 		}
 		
-    if (message == "!resetstats" || message == "!RESETSTATS") // Add a confirmation flow
+    if (message == "!resetstats" || message == "!RESETSTATS" || message == "!resetscores" || message == "!RESETSCORES") // Add a confirmation flow
 		{
 		chatData.cancel = true;
     system.run(() => {
