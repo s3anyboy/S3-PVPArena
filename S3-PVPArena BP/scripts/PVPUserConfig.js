@@ -111,7 +111,8 @@ export var flaghomerule = true; // Whether a team must have their own flag in or
 export var flagreturninstant = true; // Whether the flag returns instantly after the player carrying it dies  [true]
 export var flagreturntouch = false; // Whether the flag returns instantly after the player carrying it dies  [false]
 // If both flagreturninstant and flagreturntouch options are false, a player must physically pickup and return their own flag
-export var forceflagcarry = false; // Whether to force a player with the flag to hold it in their mainhand [false]
+export var forceflagmainhand = false; // Whether to force a player with the flag to hold it in their mainhand [false]
+export var forceflagoffhand = false; // Whether to force a player with the flag to hold it in their offhand [false]
 export var ctftimelimit = 15; // Time limit for ctf [15]
 
 // Firefight Config
@@ -126,5 +127,8 @@ export var ffgambitmode = false; // Whether to allow enemy player temas in firef
 export var ffherobonus = true; // Whether players get Hero of the Village buff after successful firefight match [true]
 
 // Trackers config
+export var trackcreativekills = true; // Whether to count kills for players in creative mode [false]
+export var defaulttracker = true; // Whether to private log all kills in chat for each player [true]
 export var logallkills = true; // Whether to private log all kills in chat for each player [true]
 export var announceallkills = true; // Whether to publically annouce all kills in chat for every player [false]
+export var showdeathboard = true; // Whether to temporarily show the death tracker when a player dies outside of a PVP match [false]

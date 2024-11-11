@@ -1,5 +1,5 @@
 // import minecraft server modules
-import { world, system, GameRules, GameRule, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
+import { world, system, GameRules, GameRule, BlockTypes, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
 
 import * as chat from './PVPChatCommandHandler.js';
 import * as config from './PVPUserConfig.js';

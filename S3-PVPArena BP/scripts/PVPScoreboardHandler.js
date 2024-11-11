@@ -1,8 +1,12 @@
 // import minecraft server modules
-import { world, system, GameRules, GameRule, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
+import { world, system, GameRules, GameRule, BlockTypes, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
 
 import * as config from './PVPUserConfig.js';
 // var scoreboardPrefix = "s3:";
+
+export const Overworld = world.getDimension('overworld');
+export const Nether = world.getDimension('nether');
+export const TheEnd = world.getDimension('the_end');
 
 export var hostileMobs = [
   "minecraft:blaze",
@@ -41,11 +45,25 @@ export var hostileMobs = [
   "minecraft:wither"
 ];
 
+export var zombieMobs = [
+  "minecraft:drowned",
+  "minecraft:husk",
+  "minecraft:zombie",
+  "minecraft:zombie_villager",
+  "minecraft:zombie_villager",
+  "minecraft:zombie_villager_v2"
+];
+
+export var skeletonMobs = [
+  "minecraft:skeleton",
+  "minecraft:stray"
+];
+
 export var bossMobs = [
   "minecraft:elder_guardian", // id0
-  "minecraft:ender_dragon", //id1
-  "minecraft:warden", //id2
-  "minecraft:wither" //id3
+  "minecraft:ender_dragon", // id1
+  "minecraft:warden", // id2
+  "minecraft:wither" // id3
 ];
 
 export var pvpMobs = [
@@ -258,9 +276,12 @@ world.afterEvents.entityDie.subscribe((death) => {
 	const victim = death.deadEntity;
   const victimname = death.deadEntity.nameTag;
   const id = death.deadEntity.typeId;
-  const friendlyname = id.replace("minecraft:", "").replace("_", " ").replace("v2", "");
+  const friendlyname = id.replace("minecraft:", "").replace("_", " ").replace("v2", "").replace("_v2", "");
+	const mode = attacker.getGameMode();
 	
-
+	if (mode != "creative" || config.trackcreativekills == true )
+	{
+	console.log (mode);
 	console.log ("Entity killed");
 	
 
@@ -280,8 +301,12 @@ world.afterEvents.entityDie.subscribe((death) => {
   if (hostileMobs.indexOf(id) > -1) {
 		console.log(attacker.nameTag , "killed a hostile" , friendlyname);
 		console.log(attacker.nameTag , "Hostile Kills Updated");
-    hostilekillsObjective?.addScore(attacker, 1);
-
+		
+		// Zombie Counters
+		if (zombieMobs.indexOf(id) > -1) {
+			// zombiemobskillsObjective?.addScore(attacker, 1);
+			console.log(attacker.nameTag , "Zombie Kills Updated");
+		}
   }
 
 	// Boss Mob Counters
@@ -352,7 +377,8 @@ world.afterEvents.entityDie.subscribe((death) => {
 		}
 
 
-	
+	}
+	else { console.log("Creative mode kill not tracked"); }
   // world.scoreboard.getObjective(tracker.allkills.objective)?.addScore(attacker, 1);
 	
 });
@@ -362,6 +388,22 @@ world.afterEvents.entityDie.subscribe((death) => {
 // TODO implement new distance trackers
 // scoreboard objectives add (score name) minecraft.custom:minecraft.walk_one_cm // statistics dont work in Bedrock
 
+// Block Trackers
+// Blocks Placed Tracker // TODO Split trackers into dimension and gamemmode
+world.afterEvents.playerPlaceBlock.subscribe(({player, block, dimension}) => {
+	// const player = "minecraft:player";
+	const builder = player.nameTag;
+  // const block = block;
+  const blocktype = block.typeId;
+	const blockname = block.name;
+	
+	console.log("Player" , builder , "placed" , blocktype); 
+	
+});
+		
+
+
+// INITILIZATION
 // World initialize tracker
 world.afterEvents.worldInitialize.subscribe((startup) => {
 		refreshDisplay()
@@ -395,6 +437,9 @@ world.beforeEvents.playerLeave.subscribe((quitter) => {
 		console.log(quitter , 'is leaving');
 });
 
+
+
+// FUNCTIONS
 system.run(initializeScoreboard);
 
 export async function initializeScoreboard() {
