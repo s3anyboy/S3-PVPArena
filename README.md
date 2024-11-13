@@ -1,5 +1,5 @@
 # S3-PVPArena
- ## Minecraft addon/behaviorpack for PVP Gamemodes and stat tracking
+ ## Minecraft Bedrock addon/behaviorpack for PVP Gamemodes and stat tracking
  
 ## Kill Count Commands:
 !killcount - all kill count
