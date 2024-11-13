@@ -17,7 +17,7 @@
 		"version": [
 			1,
 			0,
-			0
+			5
 		]
 	},
 	"modules": [
@@ -27,14 +27,14 @@
 			"version": [
 				1,
 				0,
-				0
+				5
 			]
 		},
 		{
 			"type": "script",
 			"language": "javascript",
 			"uuid": "c1a81684-8278-4b5a-8e7a-4d1dd03640b2",
-			"version": [1, 0, 0],
+			"version": [1, 0, 5],
 			"entry": "scripts/PVPArenaMain.js"
 		}
 	],
