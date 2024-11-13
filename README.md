@@ -71,7 +71,7 @@
 
 !cbroke - total blocks broken (creative all dimensions)
 
-!totalbroke - total blocks broken (creative all dimensions)
+!totalbroke - total blocks broken (all modes+dimensions)
 
 !logschopped - total logs chopped (survival all dimensions)
 
