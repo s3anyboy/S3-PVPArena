@@ -1,7 +1,10 @@
 
 // TimeZone Calculation
-export const TZOffset = -5; // User TimeZone offset (Hours)
-export const Hemisphere = "North"; // User Hemisphere (North/South)
+import * as config from './PVPUserConfig.js'; // import user timezone and hemisphere settings
+var TZOffset; 
+var Hemisphere; 
+TZOffset = config.TZOffset; 
+Hemisphere = config.Hemisphere;
 
 // Calculate milliseconds from hours
 export const MSSec = 1000; // Milliseconds per second

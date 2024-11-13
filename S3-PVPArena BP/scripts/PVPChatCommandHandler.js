@@ -1,12 +1,18 @@
 import { world, system, GameRules, GameRule, BlockTypes, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
 
-import * as pvp from "./PVPArenaHandler.js";
-import * as tracker from "./PVPScoreboardHandler.js";
+import * as pvp from './PVPArenaHandler.js';
+import * as tracker from './PVPScoreboardHandler.js';
 import * as config from './PVPUserConfig.js';
 
 /// Chat Commands Controllers
 export var sender;
 export var message;
+export var messageinput;
+
+export var awaitingreset = false;
+export var confirm = false;
+
+// export var currentdisplayObjective = "allkills";
 
 // Kill Tracker Chat Commands
 world.beforeEvents.chatSend.subscribe((chatData) => {
@@ -98,13 +104,24 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		})
 		}
 		
-    if (message == "!pvpkillcounter" || message == "!pvpkillcount") // 
+    if (message == "!pvpkills" || message == "!pvpkillcounter" || message == "!pvpkillcount") // 
 		{
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"Personal PVP Match Kill Counter"}`);
 			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalpvpmatchkillsObjective, });
 			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalpvpmatchkillsObjective, });
+			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.BelowName, { objective: tracker.totaltracker.atchkillsObjective, });
+		})
+		}
+
+		if (message == "!pvpwins" || message == "!pvpwincount") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal PVP Match Win Counter"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalpvpmatchwinsObjective, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalpvpmatchwinsObjective, });
 			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.BelowName, { objective: tracker.totaltracker.atchkillsObjective, });
 		})
 		}		
@@ -119,7 +136,109 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.playerdeathsObjective, sortOrder: ObjectiveSortOrder.Ascending, });
 			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.BelowName, { objective: tracker.totaltracker.atchkillsObjective, });
 		})
-		}		
+		}
+
+		// Block Counters
+		// Survival Block Counters
+		if (message == "!blocks" || message == "!BLOCKS") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Survival Blocks Placed Counter"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.survivalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.survivalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		})
+		}
+		// Survival Blocks Broken
+		if (message == "!broke" || message == "!BROKE") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Survival Blocks Broken Counter"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.survivalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.survivalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		})
+		}
+		
+		
+		if (message == "!oblocks" || message == "!OBLOCKS") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Survival Blocks Placed Counter (Overworld)"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.overworldblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.overworldblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		})
+		}
+		if (message == "!nblocks" || message == "!NBLOCKS") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Survival Blocks Placed Counter (Nether)"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.netherblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.netherblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		})
+		}
+		// End Blocks Placed
+		if (message == "!eblocks" || message == "!EBLOCKS") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Survival Blocks Placed Counter (End)"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		})
+		}
+		// End Blocks Broken Counter TODO
+		// if (message == "!ebroke" || message == "!EBROKE") // 
+		// {
+		// chatData.cancel = true;
+    // system.run(() => {
+      // sender.sendMessage(`§4${"Personal Survival Blocks Broken Counter (End)"}`);
+			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		// })
+		// }
+		
+		// Creative Block Counters
+		if (message == "!cblocks" || message == "!CBLOCKS") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Creative Blocks Placed Counter"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.creativeblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.creativeblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		})
+		}
+		if (message == "!cbroke" || message == "!CBROKE") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Creative Blocks Broken Counter"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.creativeblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.creativeblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		})
+		}
+		
+		// Total Block Counters
+		if (message == "!totalblocks" || message == "!TOTALBLOCKS" || message == "!tblocks" || message == "!TBLOCKS") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Total Blocks Placed Counter"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		})
+		}
+		if (message == "!totalbroke" || message == "!TOTALBROKE" || message == "!brokeblocks" || message == "!BROKEBLOCKS") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Total Blocks Broken Counter"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		})
+		}
     
 		// Distance Tracking doesn't work in Bedrock natively
 		// if (message == "!distance" || message == "!distance") // 
@@ -136,7 +255,7 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		
 		
 	// TRACKER DEBUG CHAT COMMANDS
-    if (message == "!score" || message == "!SCORE") //
+    if (message == "!scores" || message == "!SCORES") //
 		{
 		chatData.cancel = true;
     system.run(() => {
@@ -182,10 +301,12 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		
     if (message == "!resetstats" || message == "!RESETSTATS" || message == "!resetscores" || message == "!RESETSCORES") // Add a confirmation flow
 		{
-		chatData.cancel = true;
+		// chatData.cancel = true;
     system.run(() => {
-      sender.sendMessage(`§4${"Clear Tracker Stats"}`);
-			tracker.clearScoreboard();
+      sender.sendMessage(`§4${"Are you sure you want to reset All Tracker Stats? This cannot be undone. Type !yes to continue."}`);
+			console.log(sender.nameTag , "is trying to reset all tracker stats.");
+			awaitingreset = true;
+			resetConfirmation()
 		})
 		}
 		
@@ -210,7 +331,15 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		})
 		}
 		
-		
+		// currentdisplayObjective = world.scoreboard.getObjectiveAtDisplaySlot(DisplaySlotId.Sidebar).objective.id ?? "allkills";
+		// if (currentdisplayObjective != null && currentdisplayObjective != undefined)
+		// {
+		// console.log("Current Objective:" , currentdisplayObjective.id);
+		// }
+		// else { currentdisplayObjective = world.scoreboard.getObjectiveAtDisplaySlot(DisplaySlotId.Sidebar).objective; }
+		system.run(() => {
+			tracker.checkDisplay();
+		})
 		
 });
 
@@ -259,6 +388,10 @@ world.beforeEvents.chatSend.subscribe((eventData) => {
 			eventData.cancel = true;
 			player.runCommandAsync('gamemode s');
 			break;
+			case '!gma':
+			eventData.cancel = true;
+			player.runCommandAsync('gamemode a');
+			break;
 		default: break;
 	}
 });
@@ -291,7 +424,7 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
     system.run(() => {
       world.sendMessage(`§4${"PVP INITIALIZED"}`);
       world.sendMessage(`§4${"Type !join in chat to join the upcoming PVP match."}`);
-			joinPVP();
+			pvp.joinPVP();
 			})
 		}
 		
@@ -325,22 +458,14 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 			})
 		}	
 		
-		// PVP Gamemode Select
-		if (message == "!slayer" || message == "!SLAYER" || message == "!dm" || message == "!DM" )  
-		{
-		chatData.cancel = true;
-    system.run(() => {
-			pvp.setupSlayer();
-			})
-		}
-
 		// PVP Start
 		if (message == "!startpvp" || message == "!STARTPVP" ||message == "!pvpstart" || message == "!PVPSTART" || message == "!beginpvp" || message == "!BEGINPVP" || message == "!pvpbegin" || message == "!PVPBEGIN" || message == "!START" || message == "!start" )  
 		{
 		chatData.cancel = true;
     system.run(() => {
 			// countplayersPVP();
-			pvp.joinPVP();
+			if (sender.hasTag('s3:pvp') == false)
+			{pvp.joinPVP();}
 			console.log('PVP Player Count:' , pvp.pvpplayercount)
 			if (pvp.slayer == true)
 			{
@@ -368,7 +493,68 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 			pvp.stopPVP();
 			pvp.clearPVP();
 			})
+		}		
+		
+		// PVP Scorecheck
+		if (message == "!scorepvp" || message == "!SCOREPVP" ) //return 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      
+			pvp.scorecheckPVP();
+			})
+		}	
+		
+		// PVP Joincheck
+		if (message == "!checkpvp" || message == "!CHECKPVP" || message == "!pvpcheck" || message == "!PVPCHECK" ) //return 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      
+			pvp.checkplayertagPVP();
+			})
+		}
+
+		// PVP Rules
+		// PVP Gamemode Select
+		if (message == "!slayer" || message == "!SLAYER" || message == "!dm" || message == "!DM" )  
+		{
+		chatData.cancel = true;
+    system.run(() => {
+			pvp.setupSlayer();
+			})
+		}
+		
+		if (message.startsWith("!scorelimit") == true || message.startsWith("!scorelimit") == true )  
+		{
+		// chatData.cancel = true;
+		messageinput = message.replace("!scorelimit" , "").replace("!killlimit" , "");
+		console.log("Player message input:" , messageinput);
+    system.run(() => {
+			pvp.setScoreLimit();
+			})
 		}
 
 		
 });
+
+// Reset Stats Confirmation Function
+export function resetConfirmation() {
+world.beforeEvents.chatSend.subscribe((chatData) => {
+		sender = chatData.sender;
+		confirm = chatData.message;
+		if (awaitingreset == true && confirm == "!yes")
+			{
+			system.run(() => {
+			world.sendMessage(`§4${"Clearing All Tracker Stats"}`);
+			tracker.clearScoreboard();
+			console.log(sender.nameTag , "has reset all tracker stats.");
+			awaitingreset = false;
+			})
+			}
+			else {
+				awaitingreset = false;
+				return
+			}
+	})
+}

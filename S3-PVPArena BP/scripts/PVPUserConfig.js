@@ -1,11 +1,14 @@
-import * as time from './Time.js'
-import * as teams from './PVPTeams.js'
+import * as teams from './PVPTeams.js';
 
 // DO NOT EDIT ABOVE THIS LINE
 
 
 // User CONFIG OPTIONS: 
 // Default Settings are listed in [Square Brackets] for reference
+
+// TimeZone Calculation
+export var TZOffset = -6; // User TimeZone UTC offset (Hours) [0]
+export const Hemisphere = "North"; // User Hemisphere (North/South) [North]
 
 // ARENA LOCATIONS
 export const ARENA_X_SIZE = 30; // UNUSED
@@ -89,7 +92,7 @@ export var insomnia = false // PVP match insomnia (phantom spawns) [false]
 // Gametype Player Damage
 export var healthregen = true // Whether players can naturally regenrate health [true]
 export var drowningdamage = true // PVP match drowning damage [true]
-export var falldamage = true // PVP match fall damage [true]
+export var falldamage = false // PVP match fall damage [true]
 export var firedamage = true // PVP match fire damage [true]
 export var freezedamage = true // PVP match freeze damage [true]
 
@@ -100,7 +103,7 @@ export var xpkillbonus = false; // Whether players get an XP bonus after killing
 export var xpwinbonus = true; // Whether players get an XP bonus after winning a match [true]
 
 // Slayer Config
-export var killlimit = 10; // PVP match kill limit
+export var killlimit = 3; // PVP match kill limit
 export var punishdeaths = 0; // How many points to remove per player death [0]
 export var punishsd = -1; // How many points to remove per player selfdeath [-1]
 export var dmtimelimit = 5; // Time limit for slayer [10]

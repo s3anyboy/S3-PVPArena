@@ -2,6 +2,8 @@
 import { world, system, GameRules, GameRule, BlockTypes, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
 
 import * as config from './PVPUserConfig.js';
+import * as chat from './PVPChatCommandHandler.js';
+import * as pvp from './PVPArenaHandler.js';
 // var scoreboardPrefix = "s3:";
 
 export const Overworld = world.getDimension('overworld');
@@ -70,6 +72,7 @@ export var pvpMobs = [
   "s3:PVPBOT"
 ];
 
+// Tracker Objectives
 export var trackers = {
 	allkills: {
     objective: "allkills",
@@ -104,7 +107,7 @@ export var trackers = {
     display: "Custom Kills"
   },
 	
-// Non Kill Trackers
+	// Deaths
 	playerdeaths: {
     objective: "playerdeaths",
     display: "Player Deaths"
@@ -113,42 +116,17 @@ export var trackers = {
 	totaldeaths: {
     objective: "totaldeaths",
     display: "Total Deaths"
-  },
-	
-		playerdistance: {
-    objective: "playerdistance",
-    display: "Total Distance"
   },	
-		playerdistancewalk: {
-    objective: "playerdistancewalk",
-    display: "Walk Distance"
-  },
-		playerdistanceswim: {
-    objective: "playerdistanceswim",
-    display: "Swim Distance"
-  },
-		playerdistanceride: {
-    objective: "playerdistanceride",
-    display: "Ride Distance"
-  },
-	playerdistanceglide: {
-    objective: "playerdistanceglide",
-    display: "Glide Distance"
-  },
+	
 
-		playerdistancefly: {
-    objective: "playerdistancefly",
-    display: "Fly Distance"
-  },
-
-// PVP Kills tracker
+// PVP Kills tracker Objectives
 	playerkills: {
     objective: "playerkills",
     display: "Player Kills"
   },
 
 	
-// PVP Arena tracker
+// PVP Arena tracker Objectives
 	// Current Match Kills - Slayer modes
 	
 		
@@ -179,13 +157,106 @@ export var trackers = {
   ctfmatchwins: {
     objective: "ctfmatchwins",
     display: "CTF Wins"
+  },
+
+	
+//// Non Kill Trackers  Objectives
+
+// Blocks Trackers Variables
+// Block Placed 
+	totalblocksplaced: {
+    objective: "totalblocksplaced",
+    display: "Total Blocks Placed"
+  },
+	creativeblocksplaced: {
+    objective: "creativeblocksplaced",
+    display: "Creative Blocks Placed"
+  },
+	survivalblocksplaced: {
+    objective: "survivalblocksplaced",
+    display: "Survival Blocks Placed"
+  },
+	overworldblocksplaced: {
+    objective: "overworldblocksplaced",
+    display: "Survival Blocks Placed (Overworld)"
+  },
+	netherblocksplaced: {
+    objective: "netherblocksplaced",
+    display: "Survival Blocks Placed (Nether)"
+  },
+	endblocksplaced: {
+    objective: "endblocksplaced",
+    display: "Survival Blocks Placed (End)"
+  },
+
+// Blocks Broken 
+	totalblocksbroken: {
+    objective: "totalblocksbroken",
+    display: "Total Blocks Broken"
+  },
+	creativeblocksbroken: {
+    objective: "creativeblocksbroken",
+    display: "Creative Blocks Broken"
+  },
+	survivalblocksbroken: {
+    objective: "survivalblocksbroken",
+    display: "Survival Blocks Broken"
+  },
+	overworldblocksbroken: {
+    objective: "overworldblocksbroken",
+    display: "Survival Blocks Broken (Overworld)"
+  },
+	netherblocksbroken: {
+    objective: "netherblocksbroken",
+    display: "Survival Blocks Broken (Nether)"
+  },
+	endblocksbroken: {
+    objective: "endblocksbroken",
+    display: "Survival Blocks Broken (End)"
+  },
+	survivallogschopped: {
+    objective: "survivallogschopped",
+    display: "Survival Logs Chopped"
+  },
+	
+	
+	
+// Distance Trackers Objectives
+		playerdistance: {
+    objective: "playerdistance",
+    display: "Total Distance"
+  },	
+		playerdistancewalk: {
+    objective: "playerdistancewalk",
+    display: "Walk Distance"
+  },
+		playerdistanceswim: {
+    objective: "playerdistanceswim",
+    display: "Swim Distance"
+  },
+		playerdistanceride: {
+    objective: "playerdistanceride",
+    display: "Ride Distance"
+  },
+	playerdistanceglide: {
+    objective: "playerdistanceglide",
+    display: "Glide Distance"
+  },
+
+		playerdistancefly: {
+    objective: "playerdistancefly",
+    display: "Fly Distance"
   }
+
+
+
 
 };
 
-// Tracker Objective Variables
+// Tracker Objectives Variables
 export var alltrackers = world.scoreboard.getObjectives();
 // export var allstats = world.scoreboard.getObjectives();
+export var currentdisplayObjective = "allkills";
 
 export var allkillsObjective = world.scoreboard.getObjective("allkills");
 export var hostilekillsObjective = world.scoreboard.getObjective("hostilekills");
@@ -203,15 +274,6 @@ export var playerdeathsObjective = world.scoreboard.getObjective("playerdeaths")
 export var totaldeathsObjective = world.scoreboard.getObjective("totaldeaths"); // Total player death (including PVP)
 export var currentdeaths = 0; // used for calculating deaths
 
-
-// Non Kill Trackers
-// export var playerdistanceObjective = world.scoreboard.getObjective("playerdistance"); // Add the others together
-// export var playerdistancewalkObjective = world.scoreboard.getObjective("minecraft.custom:minecraft.walk_one_cm");
-// export var playerdistanceswimObjective = world.scoreboard.getObjective("minecraft.custom:swim_one_cm");
-// export var playerdistancerideObjective = world.scoreboard.getObjective("playerdistanceride");
-// export var playerdistanceglideObjective = world.scoreboard.getObjective("playerdistanceglide");
-// export var playerdistanceflyObjective = world.scoreboard.getObjective("playerdistancefly");
-
 // PVP Arena Specific Objectives
 export var currentpvpmatchkillsObjective = world.scoreboard.getObjective("currentpvpmatchkills");
 export var currentpvpmatchdeathsObjective = world.scoreboard.getObjective("currentpvpmatcdeaths");
@@ -221,16 +283,42 @@ export var pvpmobkillsObjective = world.scoreboard.getObjective("pvpmobkills");
 export var totalpvpmatchwinsObjective = world.scoreboard.getObjective("totalpvpmatchwins");
 export var ctfscoreObjective = world.scoreboard.getObjective("ctfscore");
 
+// Non Kill Trackers
+// Blocks Trackers Objectives
+// Blocks Placed
+export var totalblocksplacedObjective = world.scoreboard.getObjective("totalblocksplaced"); // Total blocks placed (all modes/dimensions)
+export var creativeblocksplacedObjective = world.scoreboard.getObjective("creativeblocksplaced"); // Total blocks placed (all modes/dimensions)
+export var survivalblocksplacedObjective = world.scoreboard.getObjective("survivalblocksplaced"); // Total blocks placed (all modes/dimensions)
+export var overworldblocksplacedObjective = world.scoreboard.getObjective("overworldblocksplaced"); // Total blocks placed in the overworld in survival
+export var netherblocksplacedObjective = world.scoreboard.getObjective("netherblocksplaced"); // Total blocks placed in the nether in survival
+export var endblocksplacedObjective = world.scoreboard.getObjective("endblocksplaced"); // Total blocks placed in the end in survival
+// Blocks Broken
+export var totalblocksbrokenObjective = world.scoreboard.getObjective("totalblocksbroken"); // Total blocks broken (all modes/dimensions)
+export var creativeblocksbrokenObjective = world.scoreboard.getObjective("creativeblocksbroken"); // Total blocks broken in creative
+export var survivalblocksbrokenObjective = world.scoreboard.getObjective("survivalblocksbroken"); // Total blocks broken in survival mode
+export var overworldblocksbrokenObjective = world.scoreboard.getObjective("overworldblocksbroken"); // Total blocks broken in overworld survival mode
+export var netherblocksbrokenObjective = world.scoreboard.getObjective("netherblocksbroken"); // Total blocks broken in the Nether survival mode
+export var endblocksbrokenObjective = world.scoreboard.getObjective("endblocksbroken"); // Total blocks broken in the End survival mode
 
+export var survivallogschoppedObjective = world.scoreboard.getObjective("survivallogschopped"); // Total logs chopped in survival mode
+
+
+
+// export var playerdistanceObjective = world.scoreboard.getObjective("playerdistance"); // Add the others together
+// export var playerdistancewalkObjective = world.scoreboard.getObjective("minecraft.custom:minecraft.walk_one_cm");
+// export var playerdistanceswimObjective = world.scoreboard.getObjective("minecraft.custom:swim_one_cm");
+// export var playerdistancerideObjective = world.scoreboard.getObjective("playerdistanceride");
+// export var playerdistanceglideObjective = world.scoreboard.getObjective("playerdistanceglide");
+// export var playerdistanceflyObjective = world.scoreboard.getObjective("playerdistancefly");
 
 // Death Counters
 world.afterEvents.entityDie.subscribe((death) => {
 
   const player = "minecraft:player";
 	const victim = death.deadEntity;
-  const victimname = death.deadEntity.nameTag;
+  const victimname = victim.nameTag ?? victim.name;
   const victimid = death.deadEntity.typeId;
-  const friendlyname = victimid.replace("minecraft:", "").replace("_", " ").replace("v2", "");
+  const friendlyname = victimid.replace("minecraft:", "").replace("_", " ").replace("v2", "").replace("_", "");
 	var attacker = death.damageSource.damagingEntity;
 	  if (!attacker ) {attacker = victim}
 	
@@ -256,8 +344,9 @@ world.afterEvents.entityDie.subscribe((death) => {
 					console.log("Player" , victimname , "died for the first time.");
 				}
 				if (config.showdeathboard == true) {
-					showDeaths(); // Show Death Count Function
-					system.runTimeout(() => {refreshDisplay();}, 500);
+					system.run(() => {checkDisplay()}); // Check current displayed objective before displaying deaths
+					system.runTimeout(() => {showDeaths();}, 10); // Show Death Count Function
+					system.runTimeout(() => {refreshDisplay();}, 300); // Return to previous displayed objective
 				}
 		}
 		}
@@ -276,25 +365,29 @@ world.afterEvents.entityDie.subscribe((death) => {
 	const victim = death.deadEntity;
   const victimname = death.deadEntity.nameTag;
   const id = death.deadEntity.typeId;
-  const friendlyname = id.replace("minecraft:", "").replace("_", " ").replace("v2", "").replace("_v2", "");
+  const friendlyname = id.replace("minecraft:", "").replace("_", " ").replace("v2", "").replace("_", "");
+	
+	const	dimension = attacker.dimension.id
+	  const dimensionname = dimension.replace("minecraft:", "");
+		
 	const mode = attacker.getGameMode();
+	
+	
 	
 	if (mode != "creative" || config.trackcreativekills == true )
 	{
-	console.log (mode);
-	console.log ("Entity killed");
+	// console.log (mode);
+	// console.log ("Entity killed");
 	
 
 	if (id == "minecraft:player")
 	{
-		
 		// Player Kill Counter
 		if (id == "minecraft:player") {
 			console.log(attacker.nameTag , "killed Player" , victimname);
 			playerkillsObjective?.addScore(attacker, 1);
 		}
 		
-
 	}
 	
 	// Hostile Mob Counter
@@ -366,10 +459,16 @@ world.afterEvents.entityDie.subscribe((death) => {
 	// All Kills
   allkillsObjective?.addScore(attacker, 1);	
 	console.log( attacker.nameTag , "All Kills Updated")
-	console.log(attacker.nameTag , "killed a" , friendlyname)
+	console.log(attacker.nameTag , "killed a" , friendlyname , "in" , mode , "in" , dimensionname)
+		
+		// Chat kill announcements
 		if (config.announceallkills == true)
 		{
-			world.sendMessage(`${[attacker.nameTag]} killed a ${[friendlyname]}`);
+			if (id != "minecraft:player") { world.sendMessage(`${[attacker.nameTag]} killed a ${[friendlyname]}`) }
+			if (id == "minecraft:player") { 
+				world.sendMessage(`${[attacker.nameTag]} killed ${[victimname]}`);
+				console.log(attacker.nameTag , "killed" , victimname , "in" , mode , "in" , dimensionname)
+				}
 		}	
 		if (config.logallkills == true && config.announceallkills == false)
 		{
@@ -391,14 +490,89 @@ world.afterEvents.entityDie.subscribe((death) => {
 // Block Trackers
 // Blocks Placed Tracker // TODO Split trackers into dimension and gamemmode
 world.afterEvents.playerPlaceBlock.subscribe(({player, block, dimension}) => {
-	// const player = "minecraft:player";
-	const builder = player.nameTag;
-  // const block = block;
-  const blocktype = block.typeId;
-	const blockname = block.name;
+
+	// const overworldplayers = world.nether.getPlayers(options?: EntityQueryOptions)
+	// const netherplayers = world.nether.getPlayers(options?: EntityQueryOptions)
+	// const endplayers = world.nether.getPlayers(options?: EntityQueryOptions)
+
+	const builder = player
+	const buildername = player.nameTag;
+  const blocktype = block.typeId ?? 'Invalid Block';
+	  const blockname = blocktype.replace("minecraft:", "").replace("_", " ");
+	const	dimension = builder.dimension.id
+	  const dimensionname = dimension.replace("minecraft:", "");
+	const mode = builder.getGameMode();
 	
-	console.log("Player" , builder , "placed" , blocktype); 
+	system.run(() => {
+	if (mode == "creative" )
+	{
+	creativeblocksplacedObjective?.addScore(builder, 1);	
+	}
+	if (mode == "survival" )
+	{
+		if (dimension == "minecraft:overworld" )
+		{
+		overworldblocksplacedObjective?.addScore(builder, 1);	
+		}
+		if (dimension == "minecraft:nether" )
+		{
+		netherblocksplacedObjective?.addScore(builder, 1);	
+		}
+		if (dimension == "minecraft:the_end" )
+		{
+		endblocksplacedObjective?.addScore(builder, 1);	
+		}
+	survivalblocksplacedObjective?.addScore(builder, 1);	
+	}
+	console.log( buildername , "placed" , blockname , "in" , dimensionname , "in" , mode ); 
+	totalblocksplacedObjective?.addScore(builder, 1);	
+	})
+});
+
+// Blocks Broken Tracker // TODO Split trackers into dimension and gamemmode
+world.beforeEvents.playerBreakBlock.subscribe(({player, block, dimension}) => {
+
+	const miner = player
+	const minername = player.nameTag;
+  const blocktype = block.typeId ?? 'Invalid Block';
+	  const blockname = blocktype.replace("minecraft:", "").replace("_", " ");
+		const blockstring = blockname.toString();
+	const	dimension = player.dimension.id
+	  const dimensionname = dimension.replace("minecraft:", "");
+	const mode = player.getGameMode();
 	
+	const log = blockstring.includes("log");
+	
+	system.run(() => {
+	if (mode == "creative" )
+	{
+	creativeblocksbrokenObjective?.addScore(miner, 1);	
+	}
+	if (mode == "survival" )
+	{
+		if (dimension == "minecraft:overworld" )
+		{
+		overworldblocksbrokenObjective?.addScore(miner, 1);
+		console.log(minername , "overworld blocks broken updated");
+			if (log == true) { 
+				survivallogschoppedObjective?.addScore(miner, 1);
+				console.log(minername , "logs chopped updated"); }
+		}
+		if (dimension == "minecraft:nether" )
+		{
+		netherblocksbrokenObjective?.addScore(miner, 1);
+		console.log(minername , "nether blocks broken updated");	
+		}
+		if (dimension == "minecraft:the_end" )
+		{
+		endblocksbrokenObjective?.addScore(miner, 1);
+		console.log(minername , "the end blocks broken updated");
+		}
+	survivalblocksbrokenObjective?.addScore(miner, 1);	
+	}
+	console.log( minername , "broke" , blockname , "in" , dimensionname , "in" , mode ); 
+	totalblocksbrokenObjective?.addScore(miner, 1);	
+	})
 });
 		
 
@@ -406,17 +580,19 @@ world.afterEvents.playerPlaceBlock.subscribe(({player, block, dimension}) => {
 // INITILIZATION
 // World initialize tracker
 world.afterEvents.worldInitialize.subscribe((startup) => {
-		refreshDisplay()
+		initializeScoreboard(); //Initialize scoreboard at server startup
 });
 		
 		
 // Player Join initialize tracker
 world.afterEvents.playerJoin.subscribe((newjoin) => {
   const player = world.getPlayers({ name: newjoin.playerName })[0];
+
+	
   if (!player) {
     return;
   }
-		
+	
   for (let key in trackers) {
     const obj = trackers[key];
     const objective = world.scoreboard.getObjective(obj.objective);
@@ -424,7 +600,7 @@ world.afterEvents.playerJoin.subscribe((newjoin) => {
       continue;
     }
 	system.run(() => {
-    initializeScoreboard();	
+    initializeScoreboard();	// Initialize scoreboard after player join
 	})	
     objective.setScore(player, 0);
 		
@@ -432,9 +608,10 @@ world.afterEvents.playerJoin.subscribe((newjoin) => {
 		
 });
 
-// Player quit hide scoreboard entries
-world.beforeEvents.playerLeave.subscribe((quitter) => {
-		console.log(quitter , 'is leaving');
+// Player quit hide 
+world.afterEvents.playerLeave.subscribe((player) => {
+		const quitter = player.playerName;
+		console.log(quitter , 'has left the game');
 });
 
 
@@ -459,7 +636,8 @@ export async function initializeScoreboard() {
     });
 		
   }
-			system.runTimeout(() => { refreshDisplay() }, 200);	
+			system.runTimeout(() => { checkDisplay() }, 5);
+			system.runTimeout(() => { refreshDisplay() }, 25);	
 }
 
 
@@ -483,16 +661,36 @@ export async function clearScoreboard() {
   }
 	
 	system.run(() => {
-    initializeScoreboard();	
+    initializeScoreboard();	// Initialize scoreboard after reset scores
 	})	
 }
-
-// Set Scorboard Display back to default 
-// TODO get userconfig variable for default
+// Get userconfig variable for default
+export async function checkDisplay() {
+	if (pvp.pvp_started == false)
+	{
+		currentdisplayObjective = world.scoreboard.getObjectiveAtDisplaySlot(DisplaySlotId.Sidebar).objective;
+		if (currentdisplayObjective != null && currentdisplayObjective != undefined)
+		{
+		currentdisplayObjective = world.scoreboard.getObjectiveAtDisplaySlot(DisplaySlotId.Sidebar).objective;
+		console.log("Current Objective:" , currentdisplayObjective.id);
+		}
+		else 
+		{
+		currentdisplayObjective = world.scoreboard.getObjectiveAtDisplaySlot(DisplaySlotId.Sidebar).objective;
+		console.log("Setting Current Objective:" , currentdisplayObjective.id);		
+		}
+	}
+}
+// Set Scoreboard Display back to default 
 export async function refreshDisplay() {
-		console.log("Resetting to default tracker"); 
-		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: allkillsObjective, });
-		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: allkillsObjective, });
+		if (currentdisplayObjective != null && currentdisplayObjective != undefined)
+		{
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: currentdisplayObjective, });
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: currentdisplayObjective, });
+		console.log("Reset to default tracker" , currentdisplayObjective.id); 
+		}
+		else { console.log("Default tracker invalid"); }
+
 }
 
 // Show PVPWins
