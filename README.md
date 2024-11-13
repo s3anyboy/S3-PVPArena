@@ -18,7 +18,7 @@
 
 !slayer !dm - set slayer mode
 
-!scorelimit #- set score limit for pvp match
+!scorelimit # - set score limit for pvp match
 
 
 ## PVP Tracker Commands
