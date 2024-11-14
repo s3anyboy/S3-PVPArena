@@ -12,6 +12,8 @@
 
 !leave !quit - leave pvp match
 
+!check - check whether you are in the pvp match
+
 !start - start pvp match
 
 !stop !end - end pvp match
@@ -40,7 +42,7 @@
 
 !wardenkillcount - warden kills
 
-!witherkillcount - warden kills
+!witherkillcount - wither kills
 
 !pkcount !playerkillcount - player kills
 
