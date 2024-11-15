@@ -10,6 +10,16 @@ export const Overworld = world.getDimension('overworld');
 export const Nether = world.getDimension('nether');
 export const TheEnd = world.getDimension('the_end');
 
+// PVPArena Horde mobs (pillagers etc)
+export var hordeMobs = [
+  "minecraft:evocation_illager",
+  "minecraft:pillager",
+  "minecraft:ravager",
+  "minecraft:vex",
+  "minecraft:vindicator",
+  "minecraft:witch"
+];
+
 export var hostileMobs = [
   "minecraft:blaze",
   "minecraft:creaking", // not yet implemented
@@ -78,9 +88,17 @@ export var trackers = {
     objective: "allkills",
     display: "Total Kills"
   },
+  hordekills: {
+    objective: "hordekills",
+    display: "Horde Mob Kills"
+  },
   hostilekills: {
     objective: "hostilekills",
     display: "Hostile Mob Kills"
+  },
+  zombiekills: {
+    objective: "zombiekills",
+    display: "Zombie Mob Kills"
   },
   bosskills: {
     objective: "bosskills",
@@ -159,6 +177,16 @@ export var trackers = {
     display: "CTF Wins"
   },
 
+// Horde
+		
+  currenthordematchkills: {
+    objective: "currenthordematchkills",
+    display: "Current Horde Kills"
+  },			
+  hordewins: {
+    objective: "hordewins",
+    display: "Total Horde Wins"
+  },	
 	
 //// Non Kill Trackers  Objectives
 
@@ -218,7 +246,10 @@ export var trackers = {
     objective: "survivallogschopped",
     display: "Survival Logs Chopped"
   },
-	
+	nethersurvivallogschopped: {
+    objective: "nethersurvivallogschopped",
+    display: "Survival Logs Chopped (Nether)"
+  },
 	
 	
 // Distance Trackers Objectives
@@ -259,7 +290,9 @@ export var alltrackers = world.scoreboard.getObjectives();
 export var currentdisplayObjective = "allkills";
 
 export var allkillsObjective = world.scoreboard.getObjective("allkills");
+
 export var hostilekillsObjective = world.scoreboard.getObjective("hostilekills");
+export var zombiekillsObjective = world.scoreboard.getObjective("zombiekills");
 
 export var bosskillsObjective = world.scoreboard.getObjective("bosskills");
 export var elderkillsObjective = world.scoreboard.getObjective("elderkills");
@@ -282,7 +315,10 @@ export var totalpvpmatchkillsObjective = world.scoreboard.getObjective("totalpvp
 export var pvpmobkillsObjective = world.scoreboard.getObjective("pvpmobkills");
 export var totalpvpmatchwinsObjective = world.scoreboard.getObjective("totalpvpmatchwins");
 export var ctfscoreObjective = world.scoreboard.getObjective("ctfscore");
-
+// Horde
+export var currenthordematchkillsObjective = world.scoreboard.getObjective("currenthordematchkills");
+export var hordekillsObjective = world.scoreboard.getObjective("hordekills");
+export var hordewinsObjective = world.scoreboard.getObjective("hordewins");
 // Non Kill Trackers
 // Blocks Trackers Objectives
 // Blocks Placed
@@ -292,6 +328,7 @@ export var survivalblocksplacedObjective = world.scoreboard.getObjective("surviv
 export var overworldblocksplacedObjective = world.scoreboard.getObjective("overworldblocksplaced"); // Total blocks placed in the overworld in survival
 export var netherblocksplacedObjective = world.scoreboard.getObjective("netherblocksplaced"); // Total blocks placed in the nether in survival
 export var endblocksplacedObjective = world.scoreboard.getObjective("endblocksplaced"); // Total blocks placed in the end in survival
+
 // Blocks Broken
 export var totalblocksbrokenObjective = world.scoreboard.getObjective("totalblocksbroken"); // Total blocks broken (all modes/dimensions)
 export var creativeblocksbrokenObjective = world.scoreboard.getObjective("creativeblocksbroken"); // Total blocks broken in creative
@@ -301,6 +338,7 @@ export var netherblocksbrokenObjective = world.scoreboard.getObjective("netherbl
 export var endblocksbrokenObjective = world.scoreboard.getObjective("endblocksbroken"); // Total blocks broken in the End survival mode
 
 export var survivallogschoppedObjective = world.scoreboard.getObjective("survivallogschopped"); // Total logs chopped in survival mode
+export var nethersurvivallogschoppedObjective = world.scoreboard.getObjective("nethersurvivallogschopped"); // Total logs chopped in the nether survival mode
 
 
 
@@ -312,6 +350,7 @@ export var survivallogschoppedObjective = world.scoreboard.getObjective("surviva
 // export var playerdistanceflyObjective = world.scoreboard.getObjective("playerdistancefly");
 
 // Death Counters
+export var attacker;
 world.afterEvents.entityDie.subscribe((death) => {
 
   const player = "minecraft:player";
@@ -319,14 +358,14 @@ world.afterEvents.entityDie.subscribe((death) => {
   const victimname = victim.nameTag ?? victim.name;
   const victimid = death.deadEntity.typeId;
   const friendlyname = victimid.replace("minecraft:", "").replace("_", " ").replace("v2", "").replace("_", "");
-	var attacker = death.damageSource.damagingEntity;
+	attacker = death.damageSource.damagingEntity;
 	  if (!attacker ) {attacker = victim}
 	
 	if (victimid == "minecraft:player")
 		// console.log("Player" , victimname , "died");
 		// Death tracker		
 		{
-		if (attacker.hasTag('s3:pvp') && victim.hasTag('s3:pvp') && pvp_started == true) // PVP Death
+		if (attacker.hasTag('s3:pvp') && victim.hasTag('s3:pvp') && pvp.pvp_started == true) // PVP Death
 		{
 			console.log("Player" , victimname , "died in a PVP match");
 			totalpvpmatchdeathsObjective?.addScore(victim, 1);
@@ -365,7 +404,7 @@ world.afterEvents.entityDie.subscribe((death) => {
 	const victim = death.deadEntity;
   const victimname = death.deadEntity.nameTag;
   const id = death.deadEntity.typeId;
-  const friendlyname = id.replace("minecraft:", "").replace("_", " ").replace("v2", "").replace("_", "");
+  const friendlyname = id.replace("minecraft:", "").replace("_", " ").replace("v2", "").replace("_", "").replace("evocation illager", "evoker");
 	
 	const	dimension = attacker.dimension.id
 	  const dimensionname = dimension.replace("minecraft:", "");
@@ -390,23 +429,23 @@ world.afterEvents.entityDie.subscribe((death) => {
 		
 	}
 	
-	// Hostile Mob Counter
-  if (hostileMobs.indexOf(id) > -1) {
+	// Hostile Mob Counters
+  if (hostileMobs.indexOf(id) > -1) 
+	{
 		console.log(attacker.nameTag , "killed a hostile" , friendlyname);
 		console.log(attacker.nameTag , "Hostile Kills Updated");
 		
-		// Zombie Counters
-		if (zombieMobs.indexOf(id) > -1) {
-			// zombiemobskillsObjective?.addScore(attacker, 1);
-			console.log(attacker.nameTag , "Zombie Kills Updated");
-		}
-  }
-
-	// Boss Mob Counters
-  if (bossMobs.indexOf(id) > -1) {		
+		// Boss Mob Counters
+		if (bossMobs.indexOf(id) > -1) 
+		{		
 		console.log(attacker.nameTag , "killed a Boss!");
 		// world.sendMessage(`§4${attacker.nameTag , "killed a Boss!"}`);
     bosskillsObjective?.addScore(attacker, 1);
+		system.run(() => { bosskillBonus() }); // Boss Kill Bonus Handler Function
+		
+		system.run(() => {checkDisplay()}); // Check current displayed objective before displaying deaths
+		system.runTimeout(() => {showBosskills();}, 10); // Show Death Count Function
+		system.runTimeout(() => {refreshDisplay();}, 300); // Return to previous displayed objective
 		
 			// Elder Guardian Counter
 		if (bossMobs.indexOf(id) == 0) {
@@ -432,7 +471,31 @@ world.afterEvents.entityDie.subscribe((death) => {
 		world.sendMessage(`§g${[attacker.nameTag]} killed Wither`);
     witherkillsObjective?.addScore(attacker, 1);
 		}	
+		}
+	
+		// Zombie Counters
+		if (zombieMobs.indexOf(id) > -1) {
+			zombiekillsObjective?.addScore(attacker, 1);
+			console.log(attacker.nameTag , "Zombie Kills Updated");
+		}		
+		
+		// Horde Counters
+		if (hordeMobs.indexOf(id) > -1) {
+		console.log(attacker.nameTag , "Horde Mob Killed");
+			
+			// Horde Match Kill Counter
+			if (pvp.pvp_started == true && attacker.hasTag('s3:pvp'))
+			{
+				hordekillsObjective?.addScore(attacker, 1);
+				console.log(attacker.nameTag , "Horde Kills Updated");
+			
+				currenthordematchkillsObjective?.addScore(attacker, 1);
+				console.log(attacker.nameTag , "Current Horde Match Kills Updated");
+			}
+		}
   }
+
+
 
 
 	
@@ -556,12 +619,18 @@ world.beforeEvents.playerBreakBlock.subscribe(({player, block, dimension}) => {
 		console.log(minername , "overworld blocks broken updated");
 			if (log == true) { 
 				survivallogschoppedObjective?.addScore(miner, 1);
-				console.log(minername , "logs chopped updated"); }
+				console.log(minername , "logs chopped updated"); 
+			}
 		}
 		if (dimension == "minecraft:nether" )
 		{
 		netherblocksbrokenObjective?.addScore(miner, 1);
-		console.log(minername , "nether blocks broken updated");	
+		console.log(minername , "nether blocks broken updated");
+			if (log == true) { 
+				survivallogschoppedObjective?.addScore(miner, 1);
+				console.log(minername , "total logs chopped updated"); 
+				survivalnetherlogschoppedObjective?.addScore(miner, 1);
+			}
 		}
 		if (dimension == "minecraft:the_end" )
 		{
@@ -669,7 +738,7 @@ export async function checkDisplay() {
 	if (pvp.pvp_started == false)
 	{
 		currentdisplayObjective = world.scoreboard.getObjectiveAtDisplaySlot(DisplaySlotId.Sidebar).objective;
-		if (currentdisplayObjective != null && currentdisplayObjective != undefined)
+		if (currentdisplayObjective != null && currentdisplayObjective != undefined && world.scoreboard.getObjectiveAtDisplaySlot(DisplaySlotId.Sidebar).objective != playerdeathsObjective )
 		{
 		currentdisplayObjective = world.scoreboard.getObjectiveAtDisplaySlot(DisplaySlotId.Sidebar).objective;
 		console.log("Current Objective:" , currentdisplayObjective.id);
@@ -689,15 +758,99 @@ export async function refreshDisplay() {
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: currentdisplayObjective, });
 		console.log("Reset to default tracker" , currentdisplayObjective.id); 
 		}
-		else { console.log("Default tracker invalid"); }
+		else { 
+		console.log("Default tracker invalid. Reset to all kills."); 
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: allkillsObjective, });
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: allkillsObjective, });
+		}
 
 }
 
+// PVP Win Bonuses
+export async function pvpheroBonus () {
+				if ( config.pvpherobonus == true )
+			{
+				pvp.matchhighscoreplayer.addEffect("minecraft:village_hero" , (20 * 60 * 10) );
+				console.log([pvp.matchhighscoreplayer.nameTag] , "is a Hero of the Village");
+				return;
+			}
+}
+
+export async function pvplootBonus () {
+			if ( config.pvplootbonus == true )
+			{
+				// pvp.matchhighscoreplayer.addEffect("effect.villageHero");
+				console.log([pvp.matchhighscoreplayer.nameTag] , "received bonus loot");
+				return;
+			}
+}
+
+export async function pvpxpwinBonus () {
+			if ( config.pvpxpwinbonus == true )
+			{
+				pvp.matchhighscoreplayer.addExperience(100);
+				console.log([pvp.matchhighscoreplayer.nameTag] , "received bonus xp");
+				return;
+			}
+}
+
+// Boss Kill Bonuses
+export async function bosskillBonus () {
+	console.log("Boss Kill Bonus Handler");
+		bossheroBonus();
+		bosslootBonus();
+		bossxpkillBonus();
+		return
+}
+export async function bossheroBonus () {
+				if ( config.bossherobonus == true )
+			{
+				attacker.addEffect("minecraft:village_hero" , (20 * 60 * 60) );
+				console.log([attacker.nameTag] , "is a Hero of the Village");
+				return;
+			}
+}
+
+export async function bosslootBonus () {
+			if ( config.bosslootbonus == true )
+			{
+				// attacker.addEquipment("effect.villageHero");
+				console.log([attacker.nameTag] , "received bonus loot");
+				return;
+			}
+}
+
+export async function bossxpkillBonus () {
+			if ( config.bossxpkillbonus == true )
+			{
+				attacker.addExperience(100);
+				console.log([attacker.nameTag] , "received bonus xp");
+				return;
+			}
+}
+// TODO kill bonus xp function
+
+// Show Bosskills
+export async function showBosskills() {
+		console.log("SHOWING BOSS KILLS");
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: bosskillsObjective, });
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: bosskillsObjective, });
+}
 // Show PVPWins
 export async function showWins() {
+	if (horde == true)
+	{
+		console.log("SHOWING HORDE WINS");
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: totalhordematchwinsObjective, });
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: totalhordematchwinsObjective, });
+	}
+	if (horde != true)
+	{
 		console.log("SHOWING PVP WINS");
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: totalpvpmatchwinsObjective, });
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: totalpvpmatchwinsObjective, });
+	}
+
 }
 
 // Show Deaths

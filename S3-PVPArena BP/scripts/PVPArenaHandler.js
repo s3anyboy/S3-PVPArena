@@ -1,4 +1,5 @@
 import { world, system, GameRules, GameRule, BlockTypes, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
+// import { MinecraftEffectTypes } from "@minecraft/vanilla-data";
 
 // import { allkillsObjective, hostilekillsObjective, bosskillsObjective, elderkillsObjective, dragonkillsObjective, wardenkillsObjective, witherkillsObjective, playerkillsObjective,
 // pvpkillsObjective, 
@@ -6,6 +7,7 @@ import { world, system, GameRules, GameRule, BlockTypes, BlockPermutation, Entit
 // import * as scoreboardhandler from './PVPScoreboardHandler.js';
 // import { trackers } from './PVPScoreboardHandler.js';
 
+import * as title from './PVPTitleHandler.js';
 import * as tracker from './PVPScoreboardHandler.js';
 import * as chat from './PVPChatCommandHandler.js';
 import * as config from './PVPUserConfig.js';
@@ -17,6 +19,7 @@ export const overworld = world.getDimension("minecraft:overworld");
 
 // global variables
 export let curTick = 0;
+export var player;
 
 export var pvp_started = false;
 
@@ -29,18 +32,18 @@ export var previoushighscoreplayer;
 export var matchhighscoreplayer;
 export var matchhighscoreplayername;
 
-export var killlimit;
-export var scorelimit;
+export var killlimit = config.killlimit;
+export var scorelimit = config.scorelimit;
 
 // GAMEMODES
 export var teams = false;
 
-export var slayer = false;
+export var slayer = true; // Slayer is the default mode
 
 export var teamslayer = false;
 export var swat = false;
 
-export var firefight = false;
+export var horde = false;
 
 export var ctf = false;
 
@@ -56,13 +59,18 @@ export var pvpplayercount = 0;
 export function joinPVP() {
 	const players = world.getAllPlayers();
 
-  for (const player of players) {
+
 		world.sendMessage(`§4${[chat.sender.nameTag]} has joined the PVP match.`);
 		// chat.sender.sendMessage(`§4${"You have joined the PVP match. It will begin shortly."}`);
 		chat.sender.addTag('s3:pvp');
-		pvpplayercount = (pvpplayercount +1);
+		// pvpplayercount = (pvpplayercount +1);
+		for (const player of players) {
+			if (player.hasTag('s3:pvp')) {
+			pvpplayercount = (pvpplayercount +1);
+			}
+		}
 		console.log('PVP Player Count:' , pvpplayercount)
-	}
+	// }
 }
 
 // Check PVP Scores
@@ -80,7 +88,8 @@ export function scorecheckPVP() {
 			if (currentscore > highscore) 
 			{
 				highscore = currentobjective.getScore(player);
-
+				
+				previoushighscoreplayer = player;
 				matchhighscoreplayer = player;
 				matchhighscoreplayername = matchhighscoreplayer.name;
 				if (previoushighscoreplayer != matchhighscoreplayer)
@@ -105,12 +114,20 @@ function scorehandlerPVP() {
 		{
 			if ( slayer == true)
 			{
-				if ( highscore >= config.killlimit)
-				{ stopPVP() }
-				else { console.log("Current Score Below Kill Limit" , [highscore] , "/" , [config.killlimit]); }
+				if ( highscore >= killlimit)
+				{ 
+				console.log("Kill Limit Reached");
+				stopPVP();
+				}
+				else {
+				console.log("Current Score Below Kill Limit" , [highscore] , "/" , [killlimit]); 
+				}
 			}
-			if ( highscore >= config.scorelimit)
-			{ stopPVP() }
+			if ( highscore >= scorelimit)
+			{
+			console.log("Score Limit Reached");
+			stopPVP();
+			}
 		system.run(scorehandlerPVP);
 		}
 }
@@ -146,18 +163,37 @@ export function stopPVP() {
 		
 		// Match Win Tracker 
 		// TODO convert to function
-		if ( pvpplayercount > 1 && highscore > 0)
+		if ( pvpplayercount > 1 && highscore > 0 && horde == false)
 			{
 			tracker.totalpvpmatchwinsObjective.addScore(matchhighscoreplayer, 1);
 			console.log([matchhighscoreplayer.nameTag] , "TOTAL WINS UPDATED");
 			console.log([matchhighscoreplayer.nameTag] , "TOTAL WINS:" , [tracker.totalpvpmatchwinsObjective.getScore(matchhighscoreplayer)]);		
 			world.sendMessage(`§g${[matchhighscoreplayer.nameTag]} TOTAL WINS: ${[tracker.totalpvpmatchwinsObjective.getScore(matchhighscoreplayer)]}`);
+			
+			tracker.pvpheroBonus();
+			tracker.pvplootBonus();
+			tracker.pvpxpwinBonus();
+			//TODO killbonus
+			
 			}
-		if (pvpplayercount < 1 || highscore <= 0)
+
+			if ( pvpplayercount >= 1 && highscore > 0 && horde == true) // Horde Win
+			{
+			tracker.hordewinsObjective.addScore(matchhighscoreplayer, 1);
+			console.log([matchhighscoreplayer.nameTag] , "TOTAL WINS UPDATED");
+			console.log([matchhighscoreplayer.nameTag] , "TOTAL HORDE WINS:" , [tracker.hordewinsObjective.getScore(matchhighscoreplayer)]);		
+			world.sendMessage(`§g${[matchhighscoreplayer.nameTag]} TOTAL HORDE WINS: ${[tracker.hordewinsObjective.getScore(matchhighscoreplayer)]}`);
+			
+			// tracker.pvpheroBonus();
+			// tracker.pvplootBonus();
+			// tracker.pvpxpwinBonus();
+			//TODO killbonus
+			
+			}
+		if (pvpplayercount <= 1 && horde == false || highscore <= 0 )
 			{
 			world.sendMessage(`§4${"Too few players or points for win tracking."}`);	
 			}
-		// system.run(() => {matchWin()});
 		// TODO convert to function		
 		
 		system.run(() => {tracker.showWins()});
@@ -167,6 +203,7 @@ export function stopPVP() {
 		overworld.runCommandAsync(`gamerule mobGriefing ${mobgriefvalue}`); // disable creepers blowing up the arena
 		
 		clearPVP(); // run function to clear PVP tags
+		title.titleCheck();
 	}
 	{
 	console.log("PVP MATCH NOT STARTED");
@@ -177,7 +214,7 @@ export function stopPVP() {
 export function checkplayertagPVP() {
 	const players = world.getAllPlayers();
 
-  for (const player of players) {
+  // for (const player of players) {
 		if (chat.sender.hasTag('s3:pvp') == true)
 		{
 		chat.sender.sendMessage(`§4${[chat.sender.nameTag]} is in the PVP match.`);
@@ -190,31 +227,40 @@ export function checkplayertagPVP() {
 		console.log(chat.sender.nameTag , 'is NOT in the PVP match.')
 		console.log('PVP Player Count:' , pvpplayercount)
 		}
-	}
+	// }
+	checkstatusPVP();
+}
+
+// Check pvp match status
+export function checkstatusPVP() {
+	const players = world.getAllPlayers();
+
+		if (pvp_started == true)
+		{
+		chat.sender.sendMessage(`§4The PVP match is in progress.`);
+		console.log('The PVP match is in progress.')
+		console.log('PVP Player Count:' , pvpplayercount)
+		}
+		if (pvp_started != true)
+		{
+		chat.sender.sendMessage(`§4There is no current PVP match.`);
+		console.log('There is no current PVP match.')
+		console.log('PVP Player Count:' , pvpplayercount)
+		}
+
 }
 	
 // Clear player function - clear individual player pvp tags
 export function clearplayerPVP() {
 	const listplayers = world.getAllPlayers();
-		// console.log(player.nameTag);
-		console.log(player);
-		// checkplayertagPVP();
-  // for (const player of listplayers) 
-	// {
-		console.log("Player Nametag:" , player.nameTag);
-		// console.log(joiningplayer);
-		
-		// if (player.nameTag == joiningplayer) 
-		if (player.hasTag('s3:pvp') == true) 
+		if (eventplayer.hasTag('s3:pvp') == true) 
 		{
-		player.removeTag('s3:pvp')
-		player.removeTag('s3:spectator')
-		console.log(joiningplayer , "has joined, removing their leftover pvp tags");
+		eventplayer.removeTag('s3:pvp')
+		eventplayer.removeTag('s3:spectator')
+		console.log([eventplayer.nameTag] , "has joined, removing their leftover pvp tags");
 		if (pvpplayercount > 0)	{pvpplayercount = (pvpplayercount - 1);}
 		console.log("PVP Player Count:" , pvpplayercount);
 		}
-	// }
-
 }
 
 // Clear function - clear all pvp tags
@@ -251,13 +297,68 @@ export function gametypeCheck() {
 
 // Set Score Limit Function
 export function setScoreLimit() {
-		if (slayer == true);
+		if (slayer == true)
 		{
 			killlimit = config.killlimit;
 				if (killlimit != chat.messageinput)
 				{killlimit = chat.messageinput ?? 10}
 		console.log('SLAYER KILL LIMIT:' , killlimit)
-		world.sendMessage(`§4The current gametype is SLAYER. The current kill limit is ${[killlimit]}`);
+		world.sendMessage(`§4The current gametype is SLAYER. The current kill limit is${[killlimit]}`);
+		}
+		else {
+			scorelimit = config.scorelimit;
+				if (scorelimit != chat.messageinput)
+				{scorelimit = chat.messageinput ?? 10}
+		console.log('SCORE LIMIT:' , scorelimit)
+		world.sendMessage(`§4The current gametype is [GAMETYPE]. The current score limit is${[scorelimit]}`);
+		}
+}
+
+
+// Set Arena Limit Function
+export function arenaSpawns() {
+   if (arena = 1)
+	 {
+	 player.teleport(
+      { x: config.ARENA_X_LOC, y: config.ARENA_Y_LOC, z: config.ARENA_Z_LOC },
+      { dimension: overworld, rotation: { x: 0, y: 0 }, }
+    );
+	 }
+   if (arena = 2)
+	 {
+	 player.teleport(
+      { x: config.ARENA2_X_LOC, y: config.ARENA2_Y_LOC, z: config.ARENA2_Z_LOC },
+      { dimension: overworld, rotation: { x: 0, y: 0 }, }
+    );
+	 }
+   if (arena = 3)
+	 {
+	 player.teleport(
+      { x: config.ARENA3_X_LOC, y: config.ARENA3_Y_LOC, z: config.ARENA3_Z_LOC },
+      { dimension: overworld, rotation: { x: 0, y: 0 }, }
+    );
+	 } 
+}
+
+
+var arena = config.arena;
+// Set Arena Limit Function
+export function setArena() {
+		if (horde == false)
+		{
+			arena = config.arena;
+				if (arena != chat.messageinput)
+				{arena = chat.messageinput ?? 1}
+		console.log('ARENA:' , arena)
+		world.sendMessage(`§4The current arena is${[arena]}`);
+		}
+		else 
+		{
+			arena = HORDE_ARENA;
+				// if (arena != chat.messageinput)
+				// {arena = chat.messageinput ?? 1}
+		console.log('ARENA:' , arena)
+		// world.sendMessage(`§4The current gametype is SLAYER. The current kill limit is ${[killlimit]}`);
 		}
 }
 
@@ -295,9 +396,9 @@ export function initializeSlayer() {
   const pvpplayers = world.getAllPlayers();
   // pvpplayercount = pvpplayers.hasTag('s3:pvp')?.length;
 
-  for (const player of pvpplayers) {	
+  for (player of pvpplayers) {	
 		if (slayer == true && player.hasTag('s3:pvp'))
-		{	
+		{
 		currentobjective = world.scoreboard.getObjective("currentpvpmatchkills");
 		player.setGameMode("adventure");
 		currentobjective.setScore(player, 0);
@@ -308,11 +409,8 @@ export function initializeSlayer() {
     // inv.container?.addItem(new ItemStack("arrow", 64));
     // inv.container?.addItem(new ItemStack("arrow", 64));
     // inv.container?.addItem(new ItemStack("arrow", 64));
-
-    player.teleport(
-      { x: config.ARENA_X_LOC, y: config.ARENA_Y_LOC, z: config.ARENA_Z_LOC },
-      { dimension: overworld, rotation: { x: 0, y: 0 }, }
-    );
+		arenaSpawns();
+		
 		}
 
 		if (slayer == true && !player.hasTag('s3:pvp'))
@@ -324,7 +422,7 @@ export function initializeSlayer() {
 		
   }
 
-  world.sendMessage("SLAYER");
+  world.sendMessage(`§4SLAYER. Arena: ${[arena]} Kill Limit:${[killlimit]} Players: ${[pvpplayercount]}`);
 }
 
 // Slayer Score Handler
@@ -354,6 +452,79 @@ world.afterEvents.entityDie.subscribe((kill) => {
 	}
 });
 
+
+// Horde
+export function setupHorde() {
+	slayer = false; // TODO create fuction to reset all gametypes
+		horde = true;
+		console.log('horde:' , horde)
+		world.sendMessage(`§4${"The current gametype is Horde."}`);
+}
+
+export function initializeHorde() {
+	pvp_started = true;
+		overworld.runCommandAsync(`gamerule mobGriefing false`); // disable creepers blowing up the arena
+
+  // set up horde scoreboard
+		currentpvpobjective = world.scoreboard.getObjective("currenthordematchkills"); // set currentobjective to match the gametype
+		// console.log("Current PVP Objective:" , currentpvpobjective.objective);
+		
+		//add new objective
+		if (!currentpvpobjective) {
+		console.log("currentpvpobjective missing")
+		}
+		// Remove old pvpkills scoreboard objective
+		world.scoreboard.removeObjective( tracker.trackers.currenthordematchkills.objective );
+		// Add new pvpkills scoreboard objective
+    world.scoreboard.addObjective(tracker.trackers.currenthordematchkills.objective, tracker.trackers.currenthordematchkills.display);
+
+		// Display the current objective as the scoreboard
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.currenthordematchkillsObjective, sortOrder: ObjectiveSortOrder.Descending, });
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.currenthordematchkillsObjective, sortOrder: ObjectiveSortOrder.Descending, });
+
+  const pvpplayers = world.getAllPlayers();
+  for (const player of pvpplayers) {	
+		if (horde == true && player.hasTag('s3:pvp'))
+		{
+		currentobjective = world.scoreboard.getObjective("currenthordematchkills");
+		player.setGameMode("adventure");
+		currentobjective.setScore(player, 0);
+		
+			
+
+    player.teleport(
+      { x: config.HORDE_ARENA_X_LOC, y: config.HORDE_ARENA_Y_LOC, z: config.HORDE_ARENA_Z_LOC },
+      { dimension: overworld, rotation: { x: 0, y: 0 }, }
+    );
+		
+		player.addEffect("minecraft:raid_omen" , (20 * 1 ) ); // Add Raid Effect	(1 second)
+		
+		}
+
+		if (horde == true && !player.hasTag('s3:pvp'))
+		{
+		currentobjective = world.scoreboard.getObjective("currenthordematchkills");
+		currentobjective.removeParticipant(player);
+		}
+  }
+  world.sendMessage("HORDE!");
+}
+
+var hordeid;
+var hordename;
+// Horde nameTagger
+world.afterEvents.entitySpawn.subscribe((hordespawn) => {
+	if (pvp_started == true && horde == true)
+	{
+	hordeid = hordespawn.entity.typeId;
+    if (tracker.hordeMobs.indexOf(hordeid) > -1) {
+		hordename = hordeid.replace("minecraft:", "horde ").replace("_", " ").replace("v2", "").replace("_", "").replace("evocation illager", "evoker");			
+        hordespawn.entity.nameTag = (`§4${[hordename]}`);
+				hordespawn.entity.addTag = 's3:horde';
+				console.log("Horde pillagers spawned");
+    }
+	}
+})
 
 // Spawn/Home teleport command
 world.beforeEvents.chatSend.subscribe((eventData) => {
@@ -481,10 +652,19 @@ world.afterEvents.worldInitialize.subscribe((gamerulesstartup) => {
 });
 
 // Joining Player clear leftover pvp tags
-export var joiningplayer;
-export var player;
-world.afterEvents.playerJoin.subscribe(({player}) => {
-
+export var eventplayer;
+// export var player;
+world.afterEvents.playerJoin.subscribe(({ playerId, playerName }) => {
+	// player = player;
 	// joiningplayer = player.playerName;
-	system.run(() => { clearplayerPVP(); }) // clear old pvp tags
+	// system.run(() => { clearplayerPVP(); }) // clear old pvp tags
 })
+
+world.afterEvents.playerSpawn.subscribe((spawnData) => {
+    let { player, initialSpawn } = spawnData;
+    if (!initialSpawn) return;
+		if (initialSpawn) { 
+			eventplayer = spawnData.player
+			clearplayerPVP()
+		}
+});

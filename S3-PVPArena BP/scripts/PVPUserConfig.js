@@ -10,6 +10,8 @@ import * as teams from './PVPTeams.js';
 export var TZOffset = -6; // User TimeZone UTC offset (Hours) [0]
 export const Hemisphere = "North"; // User Hemisphere (North/South) [North]
 
+export var arena = 1;
+
 // ARENA LOCATIONS
 export const ARENA_X_SIZE = 30; // UNUSED
 export const ARENA_Z_SIZE = 30; // UNUSED
@@ -19,6 +21,34 @@ export const ARENA_Z_LOC = 10015;
 export const ARENA_X_OFFSET = 0;
 export const ARENA_Y_OFFSET = 0;
 export const ARENA_Z_OFFSET = 0;
+
+// ARENA2 LOCATIONS
+export const ARENA2_X_SIZE = 30; // UNUSED
+export const ARENA2_Z_SIZE = 30; // UNUSED
+export const ARENA2_X_LOC = 9985;
+export const ARENA2_Y_LOC = 63;
+export const ARENA2_Z_LOC = 10015;
+export const ARENA2_X_OFFSET = 0;
+export const ARENA2_Y_OFFSET = 0;
+export const ARENA2_Z_OFFSET = 0;
+
+// ARENA3 LOCATIONS
+export const ARENA3_X_SIZE = 30; // UNUSED
+export const ARENA3_Z_SIZE = 30; // UNUSED
+export const ARENA3_X_LOC = 9967;
+export const ARENA3_Y_LOC = 100;
+export const ARENA3_Z_LOC = 10179;
+export const ARENA3_X_OFFSET = 0;
+export const ARENA3_Y_OFFSET = 0;
+export const ARENA3_Z_OFFSET = 0;
+
+// HORDE ARENA LOCATION
+export const HORDE_ARENA_X_LOC = 9985;
+export const HORDE_ARENA_Y_LOC = 62;
+export const HORDE_ARENA_Z_LOC = 9980;
+export const HORDE_ARENA_X_OFFSET = 0;
+export const HORDE_ARENA_Y_OFFSET = 0;
+export const HORDE_ARENA_Z_OFFSET = 0;
 
 // SPECTATOR BOX
 export const SPECTATOR_X_LOC = 9960;
@@ -97,10 +127,17 @@ export var firedamage = true // PVP match fire damage [true]
 export var freezedamage = true // PVP match freeze damage [true]
 
 
-export var herobonus = true; // Whether players get Hero of the Village buff after winning a match [true]
-export var lootbonus = false; // Whether players get a loot bonus after winning a match [true]
-export var xpkillbonus = false; // Whether players get an XP bonus after killing a player in PVP [false]
-export var xpwinbonus = true; // Whether players get an XP bonus after winning a match [true]
+export var pvpherobonus = true; // Whether players get Hero of the Village buff after winning a match [true]
+export var pvplootbonus = false; // Whether players get a loot bonus after winning a match [true]
+export var pvpxpkillbonus = false; // Whether players get an XP bonus after killing a player in PVP [false]
+export var pvpxpwinbonus = true; // Whether players get an XP bonus after winning a match [true]
+
+// Boss Kill Bonus
+
+export var bossherobonus = true; // Whether players get Hero of the Village buff after killing a boss [true]
+export var bosslootbonus = false; // Whether players get a loot bonus after killing a boss [true]
+export var bossxpkillbonus = false; // Whether players get an XP bonus after killing a boss [false]
+
 
 // Slayer Config
 export var killlimit = 3; // PVP match kill limit

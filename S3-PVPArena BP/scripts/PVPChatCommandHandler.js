@@ -2,6 +2,7 @@ import { world, system, GameRules, GameRule, BlockTypes, BlockPermutation, Entit
 
 import * as pvp from './PVPArenaHandler.js';
 import * as tracker from './PVPScoreboardHandler.js';
+import * as title from './PVPTitleHandler.js';
 import * as config from './PVPUserConfig.js';
 
 /// Chat Commands Controllers
@@ -425,6 +426,10 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
       world.sendMessage(`§4${"PVP INITIALIZED"}`);
       world.sendMessage(`§4${"Type !join in chat to join the upcoming PVP match."}`);
 			pvp.joinPVP();
+
+      world.sendMessage(`§4${"No Gametype Selected. Defaulting to Slayer"}`);
+			pvp.setupSlayer();
+
 			})
 		}
 		
@@ -467,10 +472,18 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 			if (sender.hasTag('s3:pvp') == false)
 			{pvp.joinPVP();}
 			console.log('PVP Player Count:' , pvp.pvpplayercount)
-			if (pvp.slayer == true)
+			
+			if (pvp.slayer == true) // Slayer
 			{
-      world.sendMessage(`§4${"The PVP match is beginning."}`);
+      world.sendMessage(`§4${"The Slayer match is beginning."}`);
 			pvp.initializeSlayer();
+			return
+			}
+
+			if (pvp.horde == true) // Horde
+			{
+      world.sendMessage(`§4${"The Horde match is beginning."}`);
+			pvp.initializeHorde();
 			return
 			}
 			else
@@ -506,7 +519,7 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		}	
 		
 		// PVP Joincheck
-		if (message == "!checkpvp" || message == "!CHECKPVP" || message == "!pvpcheck" || message == "!PVPCHECK" ) //return 
+		if (message == "!check" || message == "!CHECK" || message == "!checkpvp" || message == "!CHECKPVP" || message == "!pvpcheck" || message == "!PVPCHECK" ) //return 
 		{
 		chatData.cancel = true;
     system.run(() => {
@@ -525,13 +538,41 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 			})
 		}
 		
-		if (message.startsWith("!scorelimit") == true || message.startsWith("!scorelimit") == true )  
+		// Horde
+		if (message == "!horde" || message == "!HORDE" || message == "!ff" || message == "!FF" )  
+		{
+		chatData.cancel = true;
+    system.run(() => {
+			pvp.setupHorde();
+			})
+		}
+		
+		if (message.startsWith("!scorelimit") == true || message.startsWith("!killlimit") == true )  
 		{
 		// chatData.cancel = true;
 		messageinput = message.replace("!scorelimit" , "").replace("!killlimit" , "");
 		console.log("Player message input:" , messageinput);
     system.run(() => {
 			pvp.setScoreLimit();
+			})
+		}	
+		
+		if (message.startsWith("!arena") == true || message.startsWith("!map") == true )  
+		{
+		// chatData.cancel = true;
+		messageinput = message.replace("!arena" , "").replace("!map" , "");
+		console.log("Player message input:" , messageinput);
+    system.run(() => {
+			pvp.setArena();
+			})
+		}	
+
+		
+		if (message == "!title" || message == "!TITLE" )  
+		{
+		chatData.cancel = true;
+    system.run(() => {
+			title.titleCheck();
 			})
 		}
 
