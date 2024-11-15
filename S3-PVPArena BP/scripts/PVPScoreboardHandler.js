@@ -527,20 +527,41 @@ world.afterEvents.entityDie.subscribe((death) => {
 		// Chat kill announcements
 		if (config.announceallkills == true)
 		{
-			if (id != "minecraft:player") { world.sendMessage(`${[attacker.nameTag]} killed a ${[friendlyname]}`) }
-			if (id == "minecraft:player") { 
+			if (id != "minecraft:player")
+			{ 
+				if (friendlyname.startsWith("a") || friendlyname.startsWith("e") || friendlyname.startsWith("i") || friendlyname.startsWith("o") || friendlyname.startsWith("u") )  
+				{
+				console.log("vowel");
+				world.sendMessage(`${[attacker.nameTag]} killed an ${[friendlyname]}`)
+				}
+				else
+				{
+				world.sendMessage(`${[attacker.nameTag]} killed a ${[friendlyname]}`)
+				}
+			}
+			
+			if (id == "minecraft:player") {
 				world.sendMessage(`${[attacker.nameTag]} killed ${[victimname]}`);
 				console.log(attacker.nameTag , "killed" , victimname , "in" , mode , "in" , dimensionname)
-				}
-		}	
+			}
+		}
+		
 		if (config.logallkills == true && config.announceallkills == false)
 		{
+			if (friendlyname.startsWith("a") || friendlyname.startsWith("e") || friendlyname.startsWith("i") || friendlyname.startsWith("o") || friendlyname.startsWith("u") )  
+			{
+			console.log("vowel");
+			attacker.sendMessage(`${[attacker.nameTag]} killed an ${[friendlyname]}`);
+			}
+			else 
+			{
 			attacker.sendMessage(`${[attacker.nameTag]} killed a ${[friendlyname]}`);
+			}
 		}
 
 
 	}
-	else { console.log("Creative mode kill not tracked"); }
+	else { console.log("Creative mode kill not tracked") }
   // world.scoreboard.getObjective(tracker.allkills.objective)?.addScore(attacker, 1);
 	
 });

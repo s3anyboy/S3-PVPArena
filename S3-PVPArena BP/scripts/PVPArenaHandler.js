@@ -88,9 +88,9 @@ export function scorecheckPVP() {
 			if (currentscore > highscore) 
 			{
 				highscore = currentobjective.getScore(player);
-				
-				previoushighscoreplayer = player;
-				matchhighscoreplayer = player;
+
+				// previoushighscoreplayer = player;
+				matchhighscoreplayer = player;				
 				matchhighscoreplayername = matchhighscoreplayer.name;
 				if (previoushighscoreplayer != matchhighscoreplayer)
 				{
@@ -121,6 +121,14 @@ function scorehandlerPVP() {
 				}
 				else {
 				console.log("Current Score Below Kill Limit" , [highscore] , "/" , [killlimit]); 
+				}
+			}
+			if ( horde == true)
+			{
+				killlimit = 27;
+				if ( highscore >= killlimit)
+				{ 
+				console.log("No Horde Kill Limit");
 				}
 			}
 			if ( highscore >= scorelimit)
@@ -307,6 +315,7 @@ export function setScoreLimit() {
 		}
 		else {
 			scorelimit = config.scorelimit;
+			// killlimit = config.killlimit;
 				if (scorelimit != chat.messageinput)
 				{scorelimit = chat.messageinput ?? 10}
 		console.log('SCORE LIMIT:' , scorelimit)
