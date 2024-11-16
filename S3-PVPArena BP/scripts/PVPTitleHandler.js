@@ -15,7 +15,8 @@ import * as config from './PVPUserConfig.js';
 world.afterEvents.playerJoin.subscribe((joinevent) => {
   const joinplayer = world.getPlayers({ name: joinevent.playerName })[0];
 	
-	console.log ("TITLES NOT YET IMPLEMENTED");
+	// console.log ("TITLES");
+	titleCheck();
 
 		
 });
@@ -34,8 +35,8 @@ world.afterEvents.playerSpawn.subscribe((spawnData) => {
 });
 
 export async function titleCheck() {
-	  console.log("TITLE CHECK");
-		{
+	 console.log("TITLE CHECK");
+	
 			// if (!titleplayer)
 			// {
 				// console.log("titleplayer unedfined");
@@ -43,22 +44,24 @@ export async function titleCheck() {
 			// titleplayername = titleplayer.nameTag;
 			// system.run(() => { titlecheck() });
 			// }
-		const allplayers = world.getAllPlayers();
-		for (const player of allplayers) {
-		
-			titleplayer = player;
-			titleplayername = player.nameTag;
-			titlestring = titleplayername.toString();
-			console.log(titleplayername);
-			console.log([titleplayer.getEffect('village_hero')]);
-			
-			if (titleplayer.getEffect('village_hero') )
+	const allplayers = world.getAllPlayers();
+	for (const player of allplayers) {
+		titleplayer = player;
+		titleplayername = player.nameTag;
+		titlestring = titleplayername.toString();
+		console.log(titleplayername);
+		console.log([titleplayer.getEffect('village_hero')]);
+		if (titlestring.includes("§"))
+		{
+		hastitle = true;
+		console.log("PLAYER:" , titleplayer.nameTag , "TITLE:" , activetitle );
+		if (titleplayer.getEffect('village_hero') )
 			{
-				if (titlestring.includes("HERO"))
+				if (titlestring.includes("§gHERO§r"))
 				{
 					activetitle = titleplayer.getEffect('village_hero');
-					console.log(activetitle);
-					console.log(titleplayer.nameTag);
+					// activetitle = titleplayer.getEffect('village_hero');
+					console.log("PLAYER:" , titleplayer.nameTag , "TITLE:" , activetitle );
 					hastitle = true;
 				}
 				if (titlestring.includes("HERO") == false)
@@ -85,6 +88,7 @@ export async function titleCheck() {
 				}
 			// console.log(titleplayer.nameTag);
 			}
-		}
+			}
+			else { hastitle = false; }
 		}
 }

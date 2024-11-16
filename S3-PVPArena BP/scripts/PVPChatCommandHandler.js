@@ -150,6 +150,16 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.survivalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
 		})
 		}
+		// Rail Block Counters
+		if (message == "!rails" || message == "!RAILS") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Rail Blocks Placed Counter"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalrailsplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalrailsplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		})
+		}
 		// Survival Blocks Broken
 		if (message == "!broke" || message == "!BROKE") // 
 		{
@@ -256,6 +266,15 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		
 		
 	// TRACKER DEBUG CHAT COMMANDS
+    if (message == "!loot" || message == "!LOOT") //
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"LOOT TEST"}`);
+			tracker.lootTest();
+		})
+		}
+		
     if (message == "!scores" || message == "!SCORES") //
 		{
 		chatData.cancel = true;
@@ -338,9 +357,9 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		// console.log("Current Objective:" , currentdisplayObjective.id);
 		// }
 		// else { currentdisplayObjective = world.scoreboard.getObjectiveAtDisplaySlot(DisplaySlotId.Sidebar).objective; }
-		system.run(() => {
-			tracker.checkDisplay();
-		})
+		// system.run(() => {
+			// tracker.checkDisplay();
+		// })
 		
 });
 

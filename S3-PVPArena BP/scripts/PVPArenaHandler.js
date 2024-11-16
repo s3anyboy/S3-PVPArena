@@ -157,7 +157,7 @@ system.run(playercounthandlerPVP);
 export function stopPVP() {
 	if (pvp_started == true)
 	{
-		pvp_started = false;
+		
 		world.sendMessage(`§4${"The PVP match is ending."}`);
 		console.log('PVP MATCH ENDING');
 		
@@ -169,12 +169,15 @@ export function stopPVP() {
 		world.sendMessage(`§4${"The PVP match has ended."}`);
 		world.sendMessage(`§gThe Winner is: ${[matchhighscoreplayer.nameTag]}`);
 		
+		postlobbyPVP();
+		
+		pvp_started = false;
+		
 		// Match Win Tracker 
 		// TODO convert to function
 		if ( pvpplayercount > 1 && highscore > 0 && horde == false)
 			{
 			tracker.totalpvpmatchwinsObjective.addScore(matchhighscoreplayer, 1);
-			console.log([matchhighscoreplayer.nameTag] , "TOTAL WINS UPDATED");
 			console.log([matchhighscoreplayer.nameTag] , "TOTAL WINS:" , [tracker.totalpvpmatchwinsObjective.getScore(matchhighscoreplayer)]);		
 			world.sendMessage(`§g${[matchhighscoreplayer.nameTag]} TOTAL WINS: ${[tracker.totalpvpmatchwinsObjective.getScore(matchhighscoreplayer)]}`);
 			
@@ -188,7 +191,6 @@ export function stopPVP() {
 			if ( pvpplayercount >= 1 && highscore > 0 && horde == true) // Horde Win
 			{
 			tracker.hordewinsObjective.addScore(matchhighscoreplayer, 1);
-			console.log([matchhighscoreplayer.nameTag] , "TOTAL WINS UPDATED");
 			console.log([matchhighscoreplayer.nameTag] , "TOTAL HORDE WINS:" , [tracker.hordewinsObjective.getScore(matchhighscoreplayer)]);		
 			world.sendMessage(`§g${[matchhighscoreplayer.nameTag]} TOTAL HORDE WINS: ${[tracker.hordewinsObjective.getScore(matchhighscoreplayer)]}`);
 			
@@ -217,6 +219,19 @@ export function stopPVP() {
 	console.log("PVP MATCH NOT STARTED");
 	}
 }
+
+// PVP Postgame Lobby
+export function postlobbyPVP() {
+const pvpplayers = world.getAllPlayers();
+
+  for (const player of pvpplayers) {	
+	if (player.hasTag('s3:pvp') && pvp_started == true)
+	{
+		
+	}
+	}
+}
+
 
 // Check player pvp tag function
 export function checkplayertagPVP() {
