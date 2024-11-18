@@ -52,19 +52,18 @@ export var pvpscoreObjective = world.scoreboard.getObjective("Score");
 
 export var pvpplayercount = 0;
 
-
+var allplayers = world.getAllPlayers();
 // PVP Functions
 
 // JoinPVP function
 export function joinPVP() {
-	const players = world.getAllPlayers();
-
+	console.log("JOIN PVP") 
 
 		world.sendMessage(`§4${[chat.sender.nameTag]} has joined the PVP match.`);
 		// chat.sender.sendMessage(`§4${"You have joined the PVP match. It will begin shortly."}`);
 		chat.sender.addTag('s3:pvp');
 		// pvpplayercount = (pvpplayercount +1);
-		for (const player of players) {
+		for (const player of allplayers) {
 			if (player.hasTag('s3:pvp')) {
 			pvpplayercount = (pvpplayercount +1);
 			}
@@ -75,6 +74,7 @@ export function joinPVP() {
 
 // Check PVP Scores
 export function scorecheckPVP() {
+	if (config.debuglog == true) { console.log("PVP SCORE CHECK") }
 		const pvpplayers = world.getAllPlayers();
   // pvpplayercount = pvpplayers.hasTag('s3:pvp')?.length;
 
@@ -220,7 +220,7 @@ export function stopPVP() {
 	}
 }
 
-// PVP Postgame Lobby
+// PVP Postgame Lobby // TODO
 export function postlobbyPVP() {
 const pvpplayers = world.getAllPlayers();
 
@@ -465,6 +465,7 @@ world.afterEvents.entityDie.subscribe((kill) => {
 			if (target.typeId == "minecraft:player"  && target.hasTag('s3:pvp') && attacker.typeId == "minecraft:player" && attacker.hasTag('s3:pvp')) {
 			console.log("PVP Started:", pvp_started);
 			console.log("PVP Kill");
+			// currentpvpobjective.addScore(attacker, 1);
 			currentpvpobjective.addScore(attacker, 1);
 			scorecheckPVP()
 			}

@@ -1,11 +1,12 @@
 import { world, system, GameRules, GameRule, BlockTypes, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
 
 import * as pvp from './PVPArenaHandler.js';
-import * as tracker from './PVPScoreboardHandler.js';
 import * as title from './PVPTitleHandler.js';
+import * as tracker from './PVPScoreboardHandler.js';
 import * as config from './PVPUserConfig.js';
 
 /// Chat Commands Controllers
+// Chat Command Variables
 export var sender;
 export var message;
 export var messageinput;
@@ -93,6 +94,16 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		})
 		}
 
+		if (message.startsWith("!killdist") == true || message.startsWith("!KILLDIST") == true )  
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      world.sendMessage(`§4${"Longest Kill Distance"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.longestdistkillObjective, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.longestdistkillObjective, });
+		})
+		}
+		
 		// PVP Player Kill Counters
     if (message == "!playerkillcounter" || message == "!playerkillcount"|| message == "!pkcount") // 
 		{

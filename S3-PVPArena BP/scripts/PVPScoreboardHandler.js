@@ -1,9 +1,11 @@
 // import minecraft server modules
 import { world, system, GameRules, GameRule, BlockTypes, BlockPermutation, EntityInventoryComponent, ItemStack, DisplaySlotId, ObjectiveSortOrder } from "@minecraft/server";
 
-import * as config from './PVPUserConfig.js';
-import * as chat from './PVPChatCommandHandler.js';
 import * as pvp from './PVPArenaHandler.js';
+import * as chat from './PVPChatCommandHandler.js';
+import * as title from './PVPTitleHandler.js';
+import * as config from './PVPUserConfig.js';
+
 // var scoreboardPrefix = "s3:";
 
 export const Overworld = world.getDimension('overworld');
@@ -124,7 +126,19 @@ export var trackers = {
     objective: "customkills",
     display: "Custom Kills"
   },
-	
+	// Kill Distance 
+	longestdistkill: {
+    objective: "longestdistkill",
+    display: "Longest Kill Distance"
+  },	
+	longestdistmobkill: {
+    objective: "longestdistmobkill",
+    display: "Longest Mob Kill Distance"
+  },
+	longestdisthostilekill: {
+    objective: "longestdisthostilekill",
+    display: "Longest Hostile Mob Kill Distance"
+  },
 	// Deaths
 	playerdeaths: {
     objective: "playerdeaths",
@@ -135,14 +149,16 @@ export var trackers = {
     objective: "totaldeaths",
     display: "Total Deaths"
   },	
-	
-
-// PVP Kills tracker Objectives
+// Player Kills tracker Objectives
+	// Non-PVP Arena player kills
 	playerkills: {
     objective: "playerkills",
     display: "Player Kills"
   },
-
+	longestdistplayerkill: {
+    objective: "longestdistplayerkill",
+    display: "Longest Player Kill Distance"
+  },
 	
 // PVP Arena tracker Objectives
 	// Current Match Kills - Slayer modes
@@ -151,14 +167,21 @@ export var trackers = {
     objective: "currentpvpmatchkills",
     display: "Current Match Kills"
   },	
-	// Total player kills across all pvp matches
-  totalpvpmatchkills: {
+  totalpvpmatchkills: { // Total player kills across all pvp matches
     objective: "totalpvpmatchkills",
     display: "PVP Match Kills"
   },
+  currentpvpmatchkilldist: {
+    objective: "currentpvpmatchkilldist",
+    display: "Current Match Longest Kill Distance"
+  },
+  longestdistpvpkill: {
+    objective: "longestdistpvpkill",
+    display: "Longest PVP Kill Distance"
+  },
 	// Total PVP mob kills (bots + mpbs)
-	pvpmobkills: {
-    objective: "pvpmobkills",
+	totalpvpmobkills: {
+    objective: "totalpvpmobkills",
     display: "PVP Mob Kills"
   },
 	// Total PVP match wins
@@ -171,8 +194,12 @@ export var trackers = {
     objective: "ctfscore",
     display: "CTF Score"
   },
-  ctfmatchwins: {
-    objective: "ctfmatchwins",
+  totalctfscore: {
+    objective: "totalctfscore",
+    display: "CTF Flags Captured"
+  },
+  totalctfmatchwins: {
+    objective: "totalctfmatchwins",
     display: "CTF Wins"
   },
 
@@ -181,7 +208,15 @@ export var trackers = {
   currenthordematchkills: {
     objective: "currenthordematchkills",
     display: "Current Horde Kills"
-  },			
+  },
+  currenthordematchkilldist: {
+    objective: "currenthordematchkilldist",
+    display: "Current Horde Match Kill Distance"
+  },
+  longestdisthordekill: {
+    objective: "longestdisthordekill",
+    display: "Longest Horde Kill Distance"
+  },
   hordewins: {
     objective: "hordewins",
     display: "Total Horde Wins"
@@ -355,23 +390,41 @@ export var witherkillsObjective = world.scoreboard.getObjective("witherkills");
 
 export var customkillsObjective = world.scoreboard.getObjective("customkills");
 export var playerkillsObjective = world.scoreboard.getObjective("playerkills");
-
+// Kill Distance Objectives
+export var longestdistkillObjective = world.scoreboard.getObjective("longestdistkill");
+export var longestdistmobkillObjective = world.scoreboard.getObjective("longestdistmobkill");
+export var longestdisthostilekillObjective = world.scoreboard.getObjective("longestdisthostilekill");
+export var longestdistplayerkillObjective = world.scoreboard.getObjective("longestdistplayerkill");
+// Player Death Objectives
 export var playerdeathsObjective = world.scoreboard.getObjective("playerdeaths"); // Player deaths (excluding pvp arena)
 export var totaldeathsObjective = world.scoreboard.getObjective("totaldeaths"); // Total player death (including PVP)
 export var currentdeaths = 0; // used for calculating deaths
 
 // PVP Arena Specific Objectives
+// Current PVP Match Objectives
 export var currentpvpmatchkillsObjective = world.scoreboard.getObjective("currentpvpmatchkills");
 export var currentpvpmatchdeathsObjective = world.scoreboard.getObjective("currentpvpmatcdeaths");
+export var currentpvpmatchkilldistObjective = world.scoreboard.getObjective("currentpvpmatchkilldist"); // Longest distance kill in current pvp match
+
+// PVP Arena Total Match Stat Objectives
 export var totalpvpmatchdeathsObjective = world.scoreboard.getObjective("totalpvpmatchkills"); // Total PVP deaths
-export var totalpvpmatchkillsObjective = world.scoreboard.getObjective("totalpvpmatchkills");
-export var pvpmobkillsObjective = world.scoreboard.getObjective("pvpmobkills");
-export var totalpvpmatchwinsObjective = world.scoreboard.getObjective("totalpvpmatchwins");
-export var ctfscoreObjective = world.scoreboard.getObjective("ctfscore");
-// Horde
+export var totalpvpmatchkillsObjective = world.scoreboard.getObjective("totalpvpmatchkills"); // Total PVP kills
+export var totalpvpmobkillsObjective = world.scoreboard.getObjective("totalpvpmobkills");
+export var longestdistpvpkillObjective = world.scoreboard.getObjective("longestdistpvpkill"); // Longest Distance Kills (all PVP)
+// Wins Objectives
+export var totalpvpmatchwinsObjective = world.scoreboard.getObjective("totalpvpmatchwins"); // Total PVP wins
+export var totalslayermatchwinsObjective = world.scoreboard.getObjective("totalslayermatchwins"); // Total Slayer wins
+export var totalctfmatchwinsObjective = world.scoreboard.getObjective("totalctfmatchwins"); // Total CTF wins
+export var hordewinsObjective = world.scoreboard.getObjective("hordewins"); // Total Horde wins
+// CTF Objectives
+export var ctfscoreObjective = world.scoreboard.getObjective("ctfscore"); // Current CTF Score
+export var totalctfscoreObjective = world.scoreboard.getObjective("totalctfscore"); // Total CTF Score all matches
+// Horde Objectives
 export var currenthordematchkillsObjective = world.scoreboard.getObjective("currenthordematchkills");
-export var hordekillsObjective = world.scoreboard.getObjective("hordekills");
-export var hordewinsObjective = world.scoreboard.getObjective("hordewins");
+export var currenthordematchkilldistObjective = world.scoreboard.getObjective("currenthordematchkilldist"); // Longest distance kill in current horde match
+export var hordekillsObjective = world.scoreboard.getObjective("hordekills"); // Total Horde kills
+export var longestdisthordekillObjective = world.scoreboard.getObjective("longestdisthordekill");
+
 // Non Kill Trackers
 // Blocks Trackers Objectives
 // Blocks Placed
@@ -420,51 +473,73 @@ export var netheriteoresminedObjective = world.scoreboard.getObjective("netherit
 // Kill/Death Trackers
 export var attacker;
 export var victim;
+export var player;
+export var mode;
+export var decimal = ".";
+//TODO CURRENT kill distance tracker function
 world.afterEvents.entityDie.subscribe((death) => {
 	victim = death.deadEntity; // redefine initilized victim var
+	if ( !victim ) { return }; // end if victim invalid
 	victim = {								// redefine victim var properties
 		victim: death.deadEntity,
+		id: victim.id,
 		type: victim.typeId,
 			friendlytype: victim.typeId.replace("minecraft:", "").replace("_", " ").replace("v2", "").replace("_", ""), // readable entity type
-		name: victim.nameTag ?? victim.name,
+		// name: victim.nameTag ?? victim.name,
+		name: victim.name,
 		loc: {
+			// x: Math.trunc(victim.location.x),
 			x: Math.trunc(victim.location.x),
+				xlong: Math.fround(victim.location.x),
 			y: Math.trunc(victim.location.y),
+				ylong: Math.fround(victim.location.y),
 			z: Math.trunc(victim.location.z),
-				full: [Math.trunc(victim.location.x) , Math.trunc(victim.location.y) , Math.trunc(victim.location.z) , victim.dimension.id.replace("minecraft:", "") ].toString().replaceAll(",", ", ")
+				zlong: Math.fround(victim.location.z),
+			full: [ Math.trunc(victim.location.x) , Math.trunc(victim.location.y) , Math.trunc(victim.location.z) , victim.dimension.id.replace("minecraft:", "") ].toString().replaceAll(",", ", ")
 		},
-		dimension: { //victim.dimension.id,
+		dimension: {
+			id: victim.dimension.id,
 			name: victim.dimension.id.replace("minecraft:", "")
 		},
 		tags: victim.getTags(),
 			pvp: victim.hasTag('s3:pvp')
-		// mode: victim.getGameMode() // ?? world.getGameMode()
-			// if ( victim.typeId == "minecraft:player" ) { mode: victim.getGameMode() };
+		// mode: victim.getGameMode() ?? world.getGameMode()
 	}
 	attacker = death.damageSource.damagingEntity; // redefine initilized attacker var
 	if ( !attacker ) { attacker = victim.victim } // if there is no attacker, consider the victim as attacker
-	attacker = {								// redefine attacker var properties
+	attacker = {																	// redefine attacker var properties
 		attacker: death.damageSource.damagingEntity,
+		id: attacker.id,
 		type: attacker.typeId,
 			friendlytype: attacker.typeId.replace("minecraft:", "").replaceAll("_", " ").replace("v2", ""), // readable entity type
-		name: attacker.nameTag ?? attacker.name,
+		// name: attacker.nameTag ?? attacker.name,
+		name: attacker.name,
 		loc: {
 			x: Math.trunc(attacker.location.x),
+				xlong: Math.fround(attacker.location.x),
 			y: Math.trunc(attacker.location.y),
+				ylong: Math.fround(attacker.location.y),
 			z: Math.trunc(attacker.location.z),
+				zlong: Math.fround(attacker.location.z),
 			full: [Math.trunc(attacker.location.x) , Math.trunc(attacker.location.y) , Math.trunc(attacker.location.z) , attacker.dimension.id.replace("minecraft:", "") ].toString().replaceAll(",", ", ")
 		},
-		dimension: { //attacker.dimension.id,
+		dimension: {
+			id: attacker.dimension.id,
 			name: attacker.dimension.id.replace("minecraft:", "")
 		},
-		// mode: attacker.getGameMode(),
+		// mode: attacker.getGameMode() ?? "minecraft:survival",
 		tags: attacker.getTags(),
-			// pvp: attacker.hasTag('s3:pvp') 
+			pvp: attacker.hasTag('s3:pvp'),
+		cause: death.damageSource.cause,
 	}
 
 	if (victim.type == "minecraft:player" || attacker.type == "minecraft:player" ) { // only run if victim is a player
+		if ( victim.type == "minecraft:player" ) { console.log("Player Killed") };	// mode = victim.victim.getGameMode();
+		if ( attacker.type == "minecraft:player" ) { console.log("Player Kill") };
+			// mode = attacker.attacker.getGameMode();
 		deathCheck()
-		// killCheck()
+		killCheck()
+		killLogger()
 		}
 // Kill Trackers
 	// if (!attacker || attacker.type !== "minecraft:player" || attacker == victim.victim	) {return;} // stop if the attacker is not a player or the attacker is the victim 
@@ -472,34 +547,35 @@ world.afterEvents.entityDie.subscribe((death) => {
 	// var mode = attacker.getGameMode();
 	
 	
-  // world.scoreboard.getObjective(tracker.allkills.objective)?.addScore(attacker, 1);
+  // world.scoreboard.getObjective(tracker.allkills.objective)?.addScore(attacker.attacker, 1);
 	
 });
 
 export async function killLogger() {
+	console.log("KILL LOGGER");
 		// Chat kill announcements (public)
 		if (config.announceallkills == true)
 		{
 			if (attacker.id != "minecraft:player")
 			{ 
 				if (victim.friendlytype.startsWith("a") || victim.friendlytype.startsWith("e") || victim.friendlytype.startsWith("i") || victim.friendlytype.startsWith("o") || victim.friendlytype.startsWith("u") )  // vowel
-				{ world.sendMessage(`${[attacker.nameTag]} killed an ${[victim.friendlytype]}`) }
+				{ world.sendMessage(`${[attacker.name]} killed an ${[victim.friendlytype]}(${[killdist.total]}m)`) }
 				else // consonant
-				{ world.sendMessage(`${[attacker.nameTag]} killed a ${[victim.friendlytype]} ${[victim.name]} `) }
+				{ world.sendMessage(`${[attacker.name]} killed a ${[victim.friendlytype]} ${[victim.name]}(${[killdist.total]}m)`) }
 			}
 			
 			if (attacker.id == "minecraft:player") {
-				world.sendMessage(`${[attacker.nameTag]} killed ${[victimname]}`);
-				console.log(attacker.nameTag , "killed" , victim.name , "in" , mode , "in" , victim.dimension.name)
+				world.sendMessage(`${[attacker.name]} killed ${[victimname]}`);
+				console.log(attacker.name , "killed" , victim.name , "in" , mode , "in" , victim.dimension.name)
 			}
 		}
 		
 		if (config.logallkills == true && config.announceallkills == false)
 		{
 			if (victim.friendlytype.startsWith("a") || victim.friendlytype.startsWith("e") || victim.friendlytype.startsWith("i") || victim.friendlytype.startsWith("o") || victim.friendlytype.startsWith("u") )  // vowel
-			{ attacker.sendMessage(`${[attacker.nameTag]} killed an ${[victim.friendlytype]}`) }
+			{ attacker.sendMessage(`${[attacker.name]} killed an ${[victim.friendlytype]}`) }
 			else // consonant
-			{ attacker.sendMessage(`${[attacker.nameTag]} killed a ${[victim.friendlytype]} ${[victim.name]} `) }
+			{ attacker.sendMessage(`${[attacker.name]} killed a ${[victim.friendlytype]} ${[victim.name]} `) }
 		}
 }
 
@@ -567,21 +643,33 @@ world.afterEvents.playerPlaceBlock.subscribe(({player, block, dimension}) => {
 world.beforeEvents.playerBreakBlock.subscribe(({player, block, dimension}) => {
 
 	miner = player;
-	minername = player.nameTag;
-  blocktype = block.typeId ?? 'Invalid Block';
-	blockname = blocktype.replace("minecraft:", "").replace("_", " ");
-	blockstring = blockname.toString();
-	dimension = player.dimension.id
-	dimensionname = dimension.replace("minecraft:", "");
-	mode = player.getGameMode();
-	
-	logbroke = blockstring.includes("log");
-	oremined = blockstring.includes("ore");	
-		coppermined = blockstring.includes("copper ore");
-		ironmined = blockstring.includes("iron ore");
-		goldmined = blockstring.includes("gold ore");
-		diamondmined = blockstring.includes("diamond ore");
-		netheritemined = blockstring.includes("ancient debris");
+	miner = {
+		id: player.id,
+		name: player.nameTag,
+		block: {
+			type: block.typeId ?? 'Invalid Block',
+			name: block.typeId.replace("minecraft:", "").replace("_", " "),
+			string: block.typeId.replace("minecraft:", "").replace("_", " ").toString(),
+			loc: {
+				x: block.location.x,
+					xstring: block.location.x.toString(),
+				y: block.location.y,
+				z: block.location.z,
+					full: [ block.location.x , block.location.y , block.location.z , block.dimension.id.replace("minecraft:", "") ].toString().replaceAll(",", ", ")
+				}
+		},
+	dimension: { //attacker.dimension.id,
+			name: player.dimension.id.replace("minecraft:", "")
+		},
+		mode: player.getGameMode(),
+	}
+	logbroke = miner.block.string.includes("log");
+	oremined = miner.block.string.includes("ore");	
+		coppermined = miner.block.string.includes("copper ore");
+		ironmined = miner.block.string.includes("iron ore");
+		goldmined = miner.block.string.includes("gold ore");
+		diamondmined = miner.block.string.includes("diamond ore");
+		netheritemined = miner.block.string.includes("ancient debris");
 	
 
 	system.run(() => {
@@ -594,7 +682,7 @@ world.beforeEvents.playerBreakBlock.subscribe(({player, block, dimension}) => {
 	survivalblocksbrokenObjective?.addScore(player, 1);	
 	survivalblockbrokenCheck();
 	}
-	console.log( minername , "broke" , blockname , "in" , dimensionname , "in" , mode ); 
+	console.log( miner.name , "broke" , miner.block.name , "at" , miner.block.loc.full , "in" , miner.mode ); 
 	totalblocksbrokenObjective?.addScore(player, 1);	
 	})
 });
@@ -602,7 +690,9 @@ world.beforeEvents.playerBreakBlock.subscribe(({player, block, dimension}) => {
 // INITILIZATION
 // World initialize tracker
 world.afterEvents.worldInitialize.subscribe((startup) => {
-		initializeScoreboard(); //Initialize scoreboard at server startup
+		initializeScoreboard(); // Initialize scoreboard at server startup
+		leaderCheck();
+		title.titleCheck();
 });
 		
 		
@@ -636,10 +726,7 @@ world.afterEvents.playerLeave.subscribe((player) => {
 		console.log(quitter , 'has left the game');
 });
 
-
-
 // FUNCTIONS
-
 
 	// PVP Functions
 	// PVP Win Bonuses
@@ -667,103 +754,302 @@ export async function pvpxpwinBonus() {
 // Kill Functions
 	// Kill Check
 export async function killCheck() {
-	if (config.debuglog == true) { console.log("KILL CHECK") }
-	if (mode != "creative" || config.trackcreativekills == true ) {
+		if (attacker.type == "minecraft:player") {
+	// if (config.debuglog == true) { console.log("KILL CHECK") }
+		if (config.debuglog == true) { console.log("KILL CHECK") }
+		
+		killDistanceCheck()
+
+		if (attacker.type == "minecraft:player" && attacker.id != victim.id) { 
+		console.log("PLAYER KILL");
+		player = attacker.attacker;
+		mode = player.getGameMode(); //?? "survival";
+		}
+		
+		// mode = victim.victim.getGameMode(); //?? 
+		if (attacker.id == victim.id) { console.log("SELF KILL NOT TRACKED") };
+			
+	if (mode != "creative" || config.trackcreativekills == true ) { // Only track if killer gamemmode is not creative or trackcreativekills is true
+	if (attacker.id != victim.id) { // Only track kill if the entity id of attacker and victim ar enot the same
+		console.log("TRACK KILL");
+		console.log(mode);
+		
+		// console.log(hostileMobs.indexOf(victim.type));
 		
 	// Player Kill Counter	
-	if (victim.id == "minecraft:player") {
-		if (victim.id == "minecraft:player") {
-			console.log(attacker.nameTag , "killed Player" , victim.name);
-			playerkillsObjective?.addScore(attacker, 1);
-		}
+	if (victim.type == "minecraft:player" && attacker.type == "minecraft:player" && attacker.id != victim.id) {
+			console.log(attacker.name , "killed" , victim.name);
+			playerkillsObjective?.addScore(attacker.attacker, 1);
+
 	}
-	
 	// Hostile Mob Counters
-  if (hostileMobs.indexOf(victim.id) > -1) {
-		hostilekillsObjective?.addScore(attacker, 1);
-		score = hostilekillsObjective?.getScore(attacker);
-		console.log(attacker.nameTag , "killed hostile" , victim.friendlytype, "hostile kills" , score);
+  if (hostileMobs.indexOf(victim.type) > -1) {
+		hostilekillsObjective?.addScore(attacker.attacker, 1);
+		score = hostilekillsObjective?.getScore(attacker.attacker);
+		console.log(attacker.name , "killed hostile" , victim.friendlytype, "hostile kills" , score);
 		
 		// Boss Mob Counters
-		if (bossMobs.indexOf(victim.id) > -1) {		
-		console.log(attacker.nameTag , "killed a Boss!");
-		// world.sendMessage(`§4${attacker.nameTag , "killed a Boss!"}`);
-    bosskillsObjective?.addScore(attacker, 1);
+		if (bossMobs.indexOf(victim.type) > -1) {		
+		console.log(attacker.name , "killed a Boss!");
+    bosskillsObjective?.addScore(attacker.attacker, 1);
 		system.run(() => { bosskillBonus() }); // Boss Kill Bonus Handler Function
 		system.run(() => { checkDisplay() }); // Check current displayed objective before displaying boss kills
 		system.runTimeout(() => { showBosskills(); }, 10); // Show Death Count Function
 		system.runTimeout(() => { refreshDisplay(); }, 300); // Return to previous displayed objective
 			// Elder Guardian Counter
-			if (bossMobs.indexOf(victim.id) == 0) {
-			console.log(attacker.nameTag , "killed Elder Guardian");
-			world.sendMessage(`§g${[attacker.nameTag]} killed Elder Guardian`);
-			elderkillsObjective?.addScore(attacker, 1);
+			if (bossMobs.indexOf(victim.type) == 0) {
+			console.log(attacker.name , "killed Elder Guardian");
+			world.sendMessage(`§g${[attacker.name]} killed Elder Guardian`);
+			elderkillsObjective?.addScore(attacker.attacker, 1);
 			} 
 			// Ender Dragon Counter
-			if (bossMobs.indexOf(victim.id) == 1) {
-			console.log(attacker.nameTag , "killed The Ender Dragon");
-			world.sendMessage(`§g${[attacker.nameTag]} killed the Ender Dragon`);
-			dragonkillsObjective?.addScore(attacker, 1);
+			if (bossMobs.indexOf(victim.type) == 1) {
+			console.log(attacker.name , "killed The Ender Dragon");
+			world.sendMessage(`§g${[attacker.name]} killed the Ender Dragon`);
+			dragonkillsObjective?.addScore(attacker.attacker, 1);
 			}
 			// Warden Counter
-			if (bossMobs.indexOf(victim.id) == 2) {
-			console.log(attacker.nameTag , "killed Warden");
-			world.sendMessage(`§g${[attacker.nameTag]} killed Warden`);
-			wardenkillsObjective?.addScore(attacker, 1);
+			if (bossMobs.indexOf(victim.type) == 2) {
+			console.log(attacker.name , "killed Warden");
+			world.sendMessage(`§g${[attacker.name]} killed Warden`);
+			wardenkillsObjective?.addScore(attacker.attacker, 1);
 			}
 			// Wither Counter
-			if (bossMobs.indexOf(victim.id) == 3) {
-			console.log(attacker.nameTag , "killed Wither");
-			world.sendMessage(`§g${[attacker.nameTag]} killed Wither`);
-			witherkillsObjective?.addScore(attacker, 1);
+			if (bossMobs.indexOf(victim.type) == 3) {
+			console.log(attacker.name , "killed Wither");
+			world.sendMessage(`§g${[attacker.name]} killed Wither`);
+			witherkillsObjective?.addScore(attacker.attacker, 1);
 			}
 		}
 		// Zombie Counters
-		if (zombieMobs.indexOf(victim.id) > -1) {
-			zombiekillsObjective?.addScore(attacker, 1);
-			console.log(attacker.nameTag , "Zombie Kills" , score);
+		if (zombieMobs.indexOf(victim.type) > -1) {
+			zombiekillsObjective?.addScore(attacker.attacker, 1);
+			console.log(attacker.name , "Zombie Kills" , score);
 		}		
 		// Horde Counters
-		if (hordeMobs.indexOf(victim.id) > -1) {
-		console.log(attacker.nameTag , "Horde Mob Killed");
+		if (hordeMobs.indexOf(victim.type) > -1) {
+		console.log(attacker.name , "Horde Mob Killed");
 			// Horde Match Kill Counter
-			if (pvp.pvp_started == true && attacker.attacker.hasTag('s3:pvp')) {
-				hordekillsObjective?.addScore(attacker, 1);
-				score = hordekillsObjective?.getScore(attacker);
-				console.log(attacker.nameTag , "Horde Kills" , score);
-				currenthordematchkillsObjective?.addScore(attacker, 1);
-				score = currenthordematchkillsObjective?.getScore(attacker);
-				console.log(attacker.nameTag , "Current Horde Match Kills" , score);
+			if (pvp.pvp_started == true && attacker.pvp == true) {
+				hordekillsObjective?.addScore(attacker.attacker, 1);
+				score = hordekillsObjective?.getScore(attacker.attacker);
+				console.log(attacker.name , "Horde Kills" , score);
+				currenthordematchkillsObjective?.addScore(attacker.attacker, 1);
+				score = currenthordematchkillsObjective?.getScore(attacker.attacker);
+				console.log(attacker.name , "Current Horde Match Kills" , score);
 			}
 		}
   }
 
 	// PVP Bot Kill Counter (PVP Bots)
-  if (pvpMobs.indexOf(victim.id) > -1) {
-		console.log(attacker.nameTag ,  "killed PVP mob");
-    pvpmobkillsObjective?.addScore(attacker, 1);
+  if (pvpMobs.indexOf(victim.type) > -1) {
+		console.log(attacker.name ,  "killed PVP mob");
+    totalpvpmobkillsObjective?.addScore(attacker.attacker, 1);
   }
-		
-	// CurrentMatch Kill Counter
-  // if (tags.indexOf(victim.id) > -1) {
-		// console.log("Player killed Player in a PVP Match");
-    // world.scoreboard.getObjective(tracker.currentpvpmatchkills.objective)?.addScore(attacker, 1);
-  // }
 
 	// Custom Mob Counter
-  // if (custommobs.indexOf(victim.id) > -1) {
-		// console.log(attacker.nameTag , "killed custom tracker list mob");
-    // customkillsObjective?.addScore(attacker, 1);
+  // if (custommobs.indexOf(victim.type.toString()) > -1) {
+		// console.log(attacker.name , "killed custom tracker list mob");
+    // customkillsObjective?.addScore(attacker.attacker, 1);
   // }
 	
 	// All Kills
-  allkillsObjective?.addScore(attacker, 1);	
-	score = allkillsObjective?.getScore(attacker);
-	console.log( attacker.nameTag , "killed a" , victim.friendlytype , "in" , mode , "in" , victim.dimension.name , "All Kills:" , score )
-	killLogger()
+	// console.log( attacker.name , "killed" , victim.friendlytype , victim.loc.full , "kills" , score ) // debug
+  allkillsObjective?.addScore(attacker.attacker, 1);
+	console.log( "SCORE ADDED" ); // debug
+	score = allkillsObjective?.getScore(attacker.attacker);
+	console.log( attacker.name , "killed" , victim.friendlytype , "in" , mode , victim.loc.full , killdist.total,"m", "total kills" , score );
+	
+		currenttracker = allkillsObjective; // set currenttracker before calling leadercheck
+			forceannounce = false;
+		leaderCheck();
+	}
 	}
 	else { console.log("Creative mode kill not tracked") }
+	}
 }	
+ // Kill Distance Check Function
+export var killdist; 
+ export var forceannounce = false;
+export async function killDistanceCheck() {
+	while (config.debuglog == true) { console.log("KILL DISTANCE CHECK");
+		break }
+			
+		killdist = {
+			x: Math.abs(victim.loc.xlong - attacker.loc.xlong),
+			y: Math.abs(victim.loc.ylong - attacker.loc.ylong), // Vertical
+			z: Math.abs(victim.loc.zlong - attacker.loc.zlong),
+			total: Math.round( Math.sqrt( Math.pow( Math.abs(victim.loc.xlong - attacker.loc.xlong), 2) + Math.pow( Math.abs(victim.loc.ylong - attacker.loc.ylong), 2) + Math.pow( Math.abs(victim.loc.zlong - attacker.loc.zlong), 2) ) ),
+			totallong: Math.sqrt( Math.pow( Math.abs(victim.loc.xlong - attacker.loc.xlong), 2) + Math.pow( Math.abs(victim.loc.ylong - attacker.loc.ylong), 2) + Math.pow( Math.abs(victim.loc.zlong - attacker.loc.zlong), 2) )
+		}
+
+	console.log( "vertical dist" , killdist.y, "total dist" , killdist.total );
+
+	if (victim.type == "minecraft:player") { // Player Kill Distnace
+				score = longestdistplayerkillObjective?.getScore(attacker.attacker);
+				console.log(attacker.name , "Old Longest Distance Player Kill" , score );
+				if (killdist.total > score) {	longestdistplayerkillObjective?.setScore(attacker.attacker, killdist.total) }
+				score = longestdistplayerkillObjective?.getScore(attacker.attacker);
+				console.log(attacker.name , "Longest Distance Player Kill" , score , "(" , killdist.total , ")" );	
+				
+				// if ( )
+				// {
+					// currentpvpmatchkilldistObjective
+					// longestdistpvpkillObjective
+					
+				// }
+	// }
+	}
+	
+	if (victim.type != "minecraft:player") { // Non Player Kill Distance
+				score = longestdistmobkillObjective?.getScore(attacker.attacker);
+				// console.log(attacker.name , "Old Longest Distance Mob Kill" , score );
+					if (killdist.total > score) {	longestdistmobkillObjective?.setScore(attacker.attacker, killdist.total) }
+				score = longestdistmobkillObjective?.getScore(attacker.attacker);
+				// console.log(attacker.name , "Longest Distance Mob Kill" , score , "(" , killdist.total , ")" );
+
+				if (hostileMobs.indexOf(victim.type) > -1) { // Hostile Mobs
+					score = longestdisthostilekillObjective?.getScore(attacker.attacker);
+					// console.log(attacker.name , "Old Longest Distance Hostile Kill" , score );
+						if (killdist.total > score) {	longestdisthostilekillObjective?.setScore(attacker.attacker, killdist.total) }
+					score = longestdisthostilekillObjective?.getScore(attacker.attacker);
+					// console.log(attacker.name , "Longest Distance Hostile Kill" , score , "(" , killdist.total , ")" );
+				}
+	}
+	// All Kills Distance
+			score = longestdistkillObjective?.getScore(attacker.attacker);
+			// console.log(attacker.name , "Old Longest Distance Kill" , score );
+				if (killdist.total > score) {
+					longestdistkillObjective?.setScore(attacker.attacker, killdist.total);
+					score = longestdistkillObjective?.getScore(attacker.attacker);
+					console.log(attacker.name , "NEW Personal Longest Distance Kill" , score,"m" );
+					attacker.attacker.sendMessage(`${[attacker.name]} New Personal Longest Kill Distance ${[score]}m`);
+					
+					currenttracker = longestdistkillObjective; // set currenttracker before calling leadercheck
+						forceannounce = true; // force announcing updates to current tracker
+					leaderCheck();
+					}
+			score = longestdistkillObjective?.getScore(attacker.attacker);
+			console.log(attacker.name , "Longest Distance Kill" , score ,"m" , "(",killdist.total,")" );				
+	// TODO CURRENT	split distance trackers to pvp modes etc
+}
+
+export var currenttracker;
+export var currentscore;
+export var highscore = 0;
+export var oldhighscore = 0;
+export var trackerhighscoreplayer;
+export var previoustrackerhighscoreplayer;
+export var scoreArray; 
+var allplayers = world.getAllPlayers();
+
+export async function leaderCheck() { // TODO CURRENT split leadercheck into initial (all) and currentobjective
+	if (config.debuglog == true) { console.log("TRACKER LEADER CHECK") }
+	// const allplayers = world.getAllPlayers();
+	if (!currenttracker) {
+	leaderCheckGeneric() 
+	}
+	else {
+	for (const player of allplayers) {
+		if (!player) {
+			if (config.debuglog == true) { console.log("LEADER CHECK:" , "player undefined") }
+      return }
+			
+		currentscore = currenttracker.getScore(player);
+		console.log("LEADER CHECK:" , [currenttracker.displayName] , [player.nameTag] , "Current Score:" , [currentscore] );
+		trackerhighscoreplayer = previoustrackerhighscoreplayer;
+	if (currentscore > oldhighscore)
+			{
+				oldhighscore = highscore; // store the old highscore
+				highscore = currentscore; // set higscore to currentscore
+				previoustrackerhighscoreplayer = trackerhighscoreplayer; // store the old score leader
+				trackerhighscoreplayer = player; // set the new leader
+				
+				if (previoustrackerhighscoreplayer != trackerhighscoreplayer)
+				{ console.log("LEADER CHECK:" , "NEW Leader:" , [player.nameTag] , "High Score:" , [highscore] , "( +" , [highscore - oldhighscore] , ")" ) }
+				else { console.log("LEADER CHECK:" , "Leader:" , [trackerhighscoreplayer.nameTag] , "NEW High Score:" , [highscore] , "( +" , [highscore - oldhighscore] , ")" ) }
+				announceCheck()
+			}
+	else if (currentscore <= oldhighscore) { console.log("LEADER CHECK:" , [currenttracker.displayName] , "Current Score:" , [currentscore] , "Leader:" , [trackerhighscoreplayer.nameTag]) }
+	// announceCheck()
+	// oldhighscore = 0;
+	}
+	
+	}
+}
+export async function leaderCheckGeneric() { // TODO CURRENT split leadercheck into initial (all) and currentobjective
+	if (config.debuglog == true) { console.log("TRACKER LEADER CHECK GENERIC") }
+	// const allplayers = world.getAllPlayers();
+	for (let key in trackers) {
+    const obj = trackers[key];
+    const objective = world.scoreboard.getObjective(obj.objective);
+		currenttracker = objective;
+    if (!objective) {
+      continue;
+    }
+	// }
+	
+	for (const player of allplayers) {
+		if (!player) {
+			if (config.debuglog == true) { console.log("LEADER CHECK:" , "player undefined") }
+      return }
+			
+		currentscore = currenttracker.getScore(player);
+		console.log("LEADER CHECK:" , [currenttracker.displayName] , [player.nameTag] , "Current Score:" , [currentscore] );
+		trackerhighscoreplayer = previoustrackerhighscoreplayer;
+	if (currentscore > oldhighscore)
+			{
+				oldhighscore = highscore; // store the old highscore
+				highscore = currentscore; // set highscore to currentscore
+				previoustrackerhighscoreplayer = trackerhighscoreplayer; // store the old score leader
+				trackerhighscoreplayer = player; // set the new leader
+				
+				if (previoustrackerhighscoreplayer != trackerhighscoreplayer)
+				{ console.log("LEADER CHECK:" , "NEW Leader:" , [player.nameTag] , "High Score:" , [highscore] , "( +" , [highscore - oldhighscore] , ")" ) }
+				else { console.log("LEADER CHECK:" , "Leader:" , [trackerhighscoreplayer.nameTag] , "NEW High Score:" , [highscore] , "( +" , [highscore - oldhighscore] , ")" ) }
+				announceCheck()
+			}
+	else if (currentscore <= oldhighscore) { console.log("LEADER CHECK:" , [currenttracker.displayName] , "Current Score:" , [currentscore] , "Leader:" , [trackerhighscoreplayer.nameTag]) }
+	// announceCheck()
+	highscore = 0;
+	oldhighscore = 0;
+	}
+	highscore = 0;
+	oldhighscore = 0;
+	}
+}
+
+export async function announceCheck() {
+	// leaderCheck();
+	if (config.debuglog == true) { console.log("TRACKER LEADER ANNOUNCE CHECK") }
+	// const allplayers = world.getAllPlayers();
+	if (!previoustrackerhighscoreplayer) { console.log("ANNOUNCE:" , "Old High Score" , oldhighscore , "No Leader") }
+	else { console.log("ANNOUNCE:" , [currenttracker.displayName] , "Old High Score" , oldhighscore , "Leader:" , [previoustrackerhighscoreplayer.nameTag]) }
+	// highscore = -1;
+	for (const player of allplayers) {
+		if (!player) {
+		if (config.debuglog == true) { console.log("player undefined") }
+      return }
+		currentscore = currenttracker.getScore(player);
+		console.log("ANNOUNCE:" , [currenttracker.displayName] , [player.nameTag] , "Current Score:" , [currentscore] );
+
+				if (previoustrackerhighscoreplayer != trackerhighscoreplayer)
+				{
+				world.sendMessage(`§g${[currenttracker.displayName]} New Leader ${[trackerhighscoreplayer.nameTag]} ${[highscore]}`);
+				console.log("ANNOUNCE:" , [currenttracker.displayName] , "NEW Leader New High Score:" , [trackerhighscoreplayer.nameTag] , [highscore] , "( +" , [highscore - oldhighscore] , ")"  );
+				previoustrackerhighscoreplayer = player;
+				}
+				else if (previoustrackerhighscoreplayer == trackerhighscoreplayer && forceannounce ) // TODO add variable to control leader score update announce
+				{
+				world.sendMessage(`§g${[currenttracker.displayName]} Leader ${[trackerhighscoreplayer.nameTag]} ${[highscore]} `);
+				console.log("ANNOUNCE:" , [currenttracker.displayName] , "Leader New High Score:" , [trackerhighscoreplayer.nameTag] , [highscore] , "( +" , [highscore - oldhighscore] , ")" );
+				previoustrackerhighscoreplayer = player;
+				forceannounce = false;
+				}
+			// }
+	}
+	console.log("ANNOUNCE:" , "High Score:" , [highscore] , "Leader:" , [trackerhighscoreplayer.nameTag]);
+}
 
 export async function deathCheck() {
 	if (victim.type == "minecraft:player") { // only run if victim is a player
@@ -778,7 +1064,7 @@ export async function deathCheck() {
 		if ( victim.pvp == false || attacker.pvp == false || pvp.pvp_stared == false ) { // Non PVP Death
 			playerdeathsObjective?.addScore(victim.victim, 1);
 			score = playerdeathsObjective?.getScore(victim.victim);
-			console.log(victim.name , "death" , score , "at" , victim.loc.full );
+			console.log(victim.name , "death" , score , "at" , victim.loc.full , "from" , attacker.cause);
 			victim.victim.sendMessage(`§4${[victim.name]} ${"death"} ${[score]} ${"at"} ${[victim.loc.full]} `);
 			// Death Announcer
 			currentdeaths = -1; // reset the currentdeaths variable
@@ -811,7 +1097,7 @@ export async function bossheroBonus() {
 				if ( config.bossherobonus == true )
 			{
 				attacker.addEffect("minecraft:village_hero" , (20 * 60 * 60) );
-				if (config.debuglog == true) { console.log([attacker.nameTag] , "is a Hero of the Village") }
+				if (config.debuglog == true) { console.log([attacker.name] , "is a Hero of the Village") }
 				return;
 			}
 }
@@ -820,7 +1106,7 @@ export async function bosslootBonus() {
 			if ( config.bosslootbonus == true )
 			{
 				// attacker.addEquipment("effect.villageHero");
-				if (config.debuglog == true) { console.log([attacker.nameTag] , "received bonus loot") }
+				if (config.debuglog == true) { console.log([attacker.name] , "received bonus loot") }
 				return;
 			}
 }
@@ -829,7 +1115,7 @@ export async function bossxpkillBonus() {
 			if ( config.bossxpkillbonus == true )
 			{
 				attacker.addExperience(100);
-				if (config.debuglog == true) { console.log([attacker.nameTag] , "received bonus xp") }
+				if (config.debuglog == true) { console.log([attacker.name] , "received bonus xp") }
 				return;
 			}
 }
@@ -938,10 +1224,10 @@ export async function showDeaths() {
 }
 // Chat Logging (Private)
 export async function startLogging() {
-	logallkill = true;
+	logallkills = true;
 }
 export async function stopLogging() {
-	logallkill = false;
+	logallkills = false;
 }
 // Chat Announcing (Public)
 export async function startAnnouncing() {

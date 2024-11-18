@@ -34,13 +34,13 @@ export var UTCHour = JavaTimeDate.getUTCHours();
 // console.log(UTCHour); // Outputs Hours
 
 // Local time/date
-export var LocalTimeDate = new Date(JavaTime + TZOffsetMS); //Add the JavaTime (milliseconds) and TZOffsetMS
-console.log(LocalTimeDate); // Outputs Local Time/Date
+export var LocalTimeDate = new Date(JavaTime + TZOffsetMS); // Add the JavaTime (milliseconds) and TZOffsetMS
+console.log("S3PVPArena Local Server Time:" , LocalTimeDate); // Outputs Local Time/Date
 
 export var LocalYear = LocalTimeDate.getUTCFullYear();
 // console.log(LocalYear); // Outputs Local Year
 
-export var LocalMonth = (LocalTimeDate.getUTCMonth() + 1);
+export var LocalMonth = (LocalTimeDate.getUTCMonth() + 1); // Add 1 to the Month to start at 1 instead of 0
 // console.log(LocalMonth); // Outputs Local Month
 
 export var LocalDate = LocalTimeDate.getUTCDate();
@@ -49,17 +49,4 @@ export var LocalDate = LocalTimeDate.getUTCDate();
 export var LocalHour = LocalTimeDate.getUTCHours();
 // console.log(LocalHour); // Outputs Local Hour
 
-// Months
-export const Jan = new Date("1");
-export const Feb = new Date("2");
-export const Mar = new Date("3");
-export const Apr = new Date("4");
-export const May = new Date("5");
-export const Jun = new Date("6");
-export const Jul = new Date("7");
-export const Aug = new Date("8");
-export const Sep = new Date("9");
-export const Oct = new Date("10");
-export const Nov = new Date("11");
-export const Dec = new Date("12");
 

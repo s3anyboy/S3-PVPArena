@@ -1,8 +1,6 @@
 import * as teams from './PVPTeams.js';
 
-// DO NOT EDIT ABOVE THIS LINE
-
-
+// --- DO NOT EDIT ABOVE THIS LINE ---
 // User CONFIG OPTIONS: 
 // Default Settings are listed in [Square Brackets] for reference
 
@@ -110,8 +108,8 @@ export const WHITE_Y_LOC = 63;
 export const WHITE_Z_LOC = 10000;
 
 // General gametype config
-export var scorelimit = 3 // Generic score limit (overwritten by gametype specific scores)
-export var timelimit = 10 // PVP match time limit in minutes default 10
+export var scorelimit = 3 // Generic score limit (usually overwritten by gametype specific scores)
+export var timelimit = 10 // PVP match time limit in minutes [10]
 
 // Gametype World/Weather
 export var alwaysday = false // PVP match day lock [false]
@@ -140,13 +138,13 @@ export var bossxpkillbonus = false; // Whether players get an XP bonus after kil
 
 
 // Slayer Config
-export var killlimit = 3; // PVP match kill limit
+export var killlimit = 5; // PVP match kill limit [10]
 export var punishdeaths = 0; // How many points to remove per player death [0]
 export var punishsd = -1; // How many points to remove per player selfdeath [-1]
 export var dmtimelimit = 5; // Time limit for slayer [10]
 
 // CTF Config
-export var flagstowin = 3; // CTF score limit default 3
+export var flagstowin = 3; // CTF score limit [3]
 export var flaghomerule = true; // Whether a team must have their own flag in order to capture and enemy one [true]
 export var flagreturninstant = true; // Whether the flag returns instantly after the player carrying it dies  [true]
 export var flagreturntouch = false; // Whether the flag returns instantly after the player carrying it dies  [false]
@@ -168,10 +166,26 @@ export var ffherobonus = true; // Whether players get Hero of the Village buff a
 
 // Trackers Config
 export var trackcreativekills = true; // Whether to count kills for players in creative mode [false]
-export var defaulttracker = true; //  [true]
+export var defaulttracker = true; // fake [true]
+export var temptracker = false; // whether a tracker is being temporarily displayed [false]
+
 export var logallkills = true; // Whether to log all kills in private chat for each player [true]
 export var announceallkills = true; // Whether to announce all kills in public chat for every player [false]
+
+export var logallblocks = false; // Whether to log all blocks placed/broken in private chat for each player  [false]
+export var announceallblocks = false; // Whether to announce all blocks placed/broken in public chat for every player [false]
+
+export var logallscoreupdate = false; // Whether to log every score update in private chat for each player [false]
+export var logscoreupdate = false; // Whether to log generic score update in private chat for each player [false]
+export var announceleaderchange = true; // Whether to log everytime a score leader is changed in public chat [true]
+export var logleaderscorechange = false; // Whether to log everytime a score is updated in private chat for each player [false]
+export var announceleaderscorechange = false; // Whether to log everytime a score is updated in public chat [false]
+
+
 export var showdeathboard = true; // Whether to temporarily show the death tracker when a player dies outside of a PVP match [true]
 
-// DEBUG
-export var debuglog = true; // Enables server console logging [false]
+// DEBUG Server Console Logging
+export var debuglog = true; // Enables server debug console logging [false]
+export var debuglogallkills = true; // Whether to log all kills in the server log [false]
+export var debuglogplayerkills = true; // Whether to log all player kills in the server log [false]
+export var debuglogallblocks = true; // Whether to log all blocks placed/broken in the server log [false]
