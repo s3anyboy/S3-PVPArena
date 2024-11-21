@@ -1,4 +1,5 @@
 import * as teams from './PVPTeams.js';
+import * as pvp from './PVPArenaHandler.js';
 
 // --- DO NOT EDIT ABOVE THIS LINE ---
 // User CONFIG OPTIONS: 
@@ -8,7 +9,13 @@ import * as teams from './PVPTeams.js';
 export var TZOffset = -6; // User TimeZone UTC offset (Hours) [0]
 export const Hemisphere = "North"; // User Hemisphere (North/South) [North]
 
-export var arena = 1;
+export var arena = pvp.arena;
+export var arena1 = "Blockfort";
+export var arena2 = "Jungle Gym";
+export var arena3 = "Blockout";
+export var arena4 = "Triangle Top";
+export var arena5 = "Triangle Village";
+export var arena6 = 1;
 
 // ARENA LOCATIONS
 export const ARENA_X_SIZE = 30; // UNUSED
@@ -39,6 +46,26 @@ export const ARENA3_Z_LOC = 10179;
 export const ARENA3_X_OFFSET = 0;
 export const ARENA3_Y_OFFSET = 0;
 export const ARENA3_Z_OFFSET = 0;
+
+// ARENA4 LOCATIONS
+export const ARENA4_X_SIZE = 30; // UNUSED
+export const ARENA4_Z_SIZE = 30; // UNUSED
+export const ARENA4_X_LOC = 9929;
+export const ARENA4_Y_LOC = 66;
+export const ARENA4_Z_LOC = 10062;
+export const ARENA4_X_OFFSET = 0;
+export const ARENA4_Y_OFFSET = 0;
+export const ARENA4_Z_OFFSET = 0;
+
+// ARENA5 LOCATIONS
+export const ARENA5_X_SIZE = 30; // UNUSED
+export const ARENA5_Z_SIZE = 30; // UNUSED
+export const ARENA5_X_LOC = 9930;
+export const ARENA5_Y_LOC = 110;
+export const ARENA5_Z_LOC = 10058;
+export const ARENA5_X_OFFSET = 0;
+export const ARENA5_Y_OFFSET = 0;
+export const ARENA5_Z_OFFSET = 0;
 
 // HORDE ARENA LOCATION
 export const HORDE_ARENA_X_LOC = 9985;

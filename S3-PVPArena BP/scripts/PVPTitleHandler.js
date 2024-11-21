@@ -30,11 +30,12 @@ world.afterEvents.playerSpawn.subscribe((spawnData) => {
 	// let { player, initialSpawn } = spawnData;
 		// titleplayer = spawnData.player
 		// titleplayername = titleplayer.nameTag
+		allplayers = world.getAllPlayers();
 		titleCheck();
 });
 
 export async function titleCheck() {
-	if (config.debuglog == true) { console.log("TITLE CHECK") }
+	if (config.debuglog == true) { console.log("[TITLE CHECK]" , "START") }
 	
 	for (const player of allplayers) {
 		if (!player) {
@@ -46,23 +47,19 @@ export async function titleCheck() {
 			return }
 		titleplayername = titleplayer.name;
 		titlestring = titleplayername.toString();
-		console.log("TITLE CHECK:" , titleplayername);
+		console.log("[TITLE CHECK]" , titleplayername);
 		console.log([titleplayer.getEffect('village_hero')]);
-		if (titlestring.includes("§"))
-		{
+		if (titlestring.includes("§")) {
 		hastitle = true;
-		if (config.debuglog == true) { console.log("TITLE CHECK:" , "PLAYER:" , titleplayername , "title" , activetitle ) }
-		if (titleplayer.getEffect('village_hero') )
-			{
-				if (titlestring.includes("§gHERO§r"))
-				{
+		if (config.debuglog == true) { console.log("[TITLE CHECK]" , "PLAYER:" , titleplayername , "title" , activetitle ) }
+		if (titleplayer.getEffect('village_hero') ) {
+				if (titlestring.includes("§gHERO§r")) {
 					activetitle = titleplayer.getEffect('village_hero');
 					// activetitle = titleplayer.getEffect('village_hero');
-				if (config.debuglog == true) { console.log("TITLE CHECK:" , titleplayername , "title" , activetitle ) }
+				if (config.debuglog == true) { console.log("[TITLE CHECK]" , titleplayername , "title" , activetitle ) }
 					hastitle = true;
 				}
-				if (titlestring.includes("HERO") == false)
-				{
+				if (titlestring.includes("HERO") == false) {
 					activetitle = titleplayer.getEffect('village_hero');
 					if (config.debuglog == true) { console.log(activetitle) }
 					// titleplayer.nameTag = (`§gHERO ${[titleplayername]}§f`);
@@ -71,12 +68,10 @@ export async function titleCheck() {
 				}
 			}
 			
-			if (titleplayer.getEffect('village_hero') == undefined) //&& hastitle == true)
-			{
+			if (titleplayer.getEffect('village_hero') == undefined) {
 				// console.log("Player has leftover title");
 				console.log(titlestring);
-				if (titlestring.includes("HERO"))
-				{
+				if (titlestring.includes("HERO")) {
 					// titleplayer.nameTag = (`${[titleplayer.name]}`);
 					hastitle = false;
 					console.log("removing old HERO title");
@@ -87,8 +82,9 @@ export async function titleCheck() {
 			}
 		}
 		else {
-			if (config.debuglog == true) { console.log("TITLE CHECK:" , titleplayername , "has no title") }
+			if (config.debuglog == true) { console.log("[TITLE CHECK]" , titleplayername , "has no title") }
 			hastitle = false;
 			}
 		}
+		if (config.debuglog == true) { console.log("[TITLE CHECK]" , "DONE") }
 }

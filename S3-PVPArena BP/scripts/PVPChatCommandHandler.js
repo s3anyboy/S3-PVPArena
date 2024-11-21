@@ -21,7 +21,7 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
     sender = chatData.sender;
     message = chatData.message;
 		
-    if (message == "!killcounter" || message == "!killcount") //
+    if (message == "!killcounter" || message == "!killcount" || message == "!kills") //
 		{
 		chatData.cancel = true;
     system.run(() => {
@@ -32,7 +32,7 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		})
 		}
 
-    if (message == "!hostilekillcounter" || message == "!hostilekillcount"|| message == "!hostilekills") // 
+    if (message == "!hostilekillcounter" || message == "!hostilekillcount" || message == "!hostilekills" || message == "!hkills") // 
 		{
 		chatData.cancel = true;
     system.run(() => {
@@ -42,8 +42,8 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.BelowName, { objective: tracker.hostilekillsObjective, });
 		})
 		}
-		
-    if (message == "!bosskillcounter" || message == "!bosskillcount") // 
+		// Boss Kills
+    if (message == "!bosskillcounter" || message == "!bosskillcount" || message == "!bkills") // 
 		{
 		chatData.cancel = true;
     system.run(() => {
@@ -91,6 +91,17 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.witherkillsObjective, });
 			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.witherkillsObjective, });
 			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.BelowName, { objective: tracker.witherkillsObjective, });
+		})
+		}
+		
+		if (message == "!babykillcounter" || message == "!babykillcount" || message == "!babykills") // 
+		{
+		chatData.cancel = true;
+    system.run(() => {
+      sender.sendMessage(`§4${"Personal Baby Kill Counter"}`);
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.babykillsObjective, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.babykillsObjective, });
+			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.BelowName, { objective: tracker.bosskillsObjective, });
 		})
 		}
 
@@ -157,8 +168,8 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"Personal Survival Blocks Placed Counter"}`);
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.survivalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.survivalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.survivalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.survivalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		})
 		}
 		// Rail Block Counters
@@ -167,8 +178,8 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"Personal Rail Blocks Placed Counter"}`);
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalrailsplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalrailsplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalrailsplacedObjective, sortOrder: ObjectiveSortOrder.Descending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalrailsplacedObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		})
 		}
 		// Survival Blocks Broken
@@ -177,8 +188,8 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"Personal Survival Blocks Broken Counter"}`);
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.survivalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending,});
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.survivalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.survivalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Descending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.survivalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		})
 		}
 		
@@ -188,8 +199,8 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"Personal Survival Blocks Placed Counter (Overworld)"}`);
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.overworldblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.overworldblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.overworldblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.overworldblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		})
 		}
 		if (message == "!nblocks" || message == "!NBLOCKS") // 
@@ -197,8 +208,8 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"Personal Survival Blocks Placed Counter (Nether)"}`);
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.netherblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.netherblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.netherblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.netherblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		})
 		}
 		// End Blocks Placed
@@ -207,8 +218,8 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"Personal Survival Blocks Placed Counter (End)"}`);
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		})
 		}
 		// End Blocks Broken Counter TODO
@@ -217,8 +228,8 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		// chatData.cancel = true;
     // system.run(() => {
       // sender.sendMessage(`§4${"Personal Survival Blocks Broken Counter (End)"}`);
-			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
-			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending,});
+			// world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.endblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		// })
 		// }
 		
@@ -228,8 +239,8 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"Personal Creative Blocks Placed Counter"}`);
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.creativeblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.creativeblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.creativeblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.creativeblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		})
 		}
 		if (message == "!cbroke" || message == "!CBROKE") // 
@@ -237,8 +248,8 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"Personal Creative Blocks Broken Counter"}`);
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.creativeblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending,});
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.creativeblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.creativeblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Descending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.creativeblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		})
 		}
 		
@@ -248,17 +259,17 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"Personal Total Blocks Placed Counter"}`);
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending,});
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalblocksplacedObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		})
 		}
-		if (message == "!totalbroke" || message == "!TOTALBROKE" || message == "!brokeblocks" || message == "!BROKEBLOCKS") // 
+		if (message == "!totalbroke" || message == "!TOTALBROKE" || message == "!tbroke" || message == "!TBROKE" || message == "!brokeblocks" || message == "!BROKEBLOCKS") // 
 		{
 		chatData.cancel = true;
     system.run(() => {
       sender.sendMessage(`§4${"Personal Total Blocks Broken Counter"}`);
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending,});
-			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: tracker.totalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Descending,});
+			world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: tracker.totalblocksbrokenObjective, sortOrder: ObjectiveSortOrder.Descending, });
 		})
 		}
     
@@ -500,30 +511,10 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
     system.run(() => {
 			// countplayersPVP();
 			if (sender.hasTag('s3:pvp') == false)
-			{pvp.joinPVP();}
+			{pvp.joinPVP()}
 			console.log('PVP Player Count:' , pvp.pvpplayercount)
-			
-			if (pvp.slayer == true) // Slayer
-			{
-      world.sendMessage(`§4${"The Slayer match is beginning."}`);
-			pvp.initializeSlayer();
-			return
-			}
+			pvp.startPVP()
 
-			if (pvp.horde == true) // Horde
-			{
-      world.sendMessage(`§4${"The Horde match is beginning."}`);
-			pvp.initializeHorde();
-			return
-			}
-			else
-			{
-      world.sendMessage(`§4${"No Gametype Selected. Defaulting to Slayer"}`);
-			pvp.setupSlayer();
-			console.log('SLAYER:' , pvp.slayer)
-			pvp.initializeSlayer();
-			return
-			}
 			})
 		}
 		
@@ -533,6 +524,7 @@ world.beforeEvents.chatSend.subscribe((chatData) => {
 		chatData.cancel = true;
     system.run(() => {
       
+			pvp.scorecheckPVP();
 			pvp.stopPVP();
 			pvp.clearPVP();
 			})

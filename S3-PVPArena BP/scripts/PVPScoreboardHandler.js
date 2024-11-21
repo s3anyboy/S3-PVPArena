@@ -102,6 +102,10 @@ export var trackers = {
     objective: "zombiekills",
     display: "Zombie Mob Kills"
   },
+		zombiebabykills: {
+			objective: "zombiebabykills",
+			display: "Zombie Baby Kills"
+		},
   bosskills: {
     objective: "bosskills",
     display: "Boss Kills"
@@ -125,6 +129,10 @@ export var trackers = {
   customkills: {
     objective: "customkills",
     display: "Custom Kills"
+  },
+  babykills: {
+    objective: "babykills",
+    display: "Baby Kills"
   },
 	// Kill Distance 
 	longestdistkill: {
@@ -204,7 +212,6 @@ export var trackers = {
   },
 
 // Horde
-		
   currenthordematchkills: {
     objective: "currenthordematchkills",
     display: "Current Horde Kills"
@@ -381,6 +388,7 @@ export var allkillsObjective = world.scoreboard.getObjective("allkills");
 
 export var hostilekillsObjective = world.scoreboard.getObjective("hostilekills");
 export var zombiekillsObjective = world.scoreboard.getObjective("zombiekills");
+	export var zombiebabykillsObjective = world.scoreboard.getObjective("zombiebabykills");
 
 export var bosskillsObjective = world.scoreboard.getObjective("bosskills");
 export var elderkillsObjective = world.scoreboard.getObjective("elderkills");
@@ -389,6 +397,9 @@ export var wardenkillsObjective = world.scoreboard.getObjective("wardenkills");
 export var witherkillsObjective = world.scoreboard.getObjective("witherkills");
 
 export var customkillsObjective = world.scoreboard.getObjective("customkills");
+export var babykillsObjective = world.scoreboard.getObjective("babykills");
+	export var babyvillagerkillsObjective = world.scoreboard.getObjective("babyvillagerkills");
+	export var babymobkillsObjective = world.scoreboard.getObjective("babymobkills");
 export var playerkillsObjective = world.scoreboard.getObjective("playerkills");
 // Kill Distance Objectives
 export var longestdistkillObjective = world.scoreboard.getObjective("longestdistkill");
@@ -486,7 +497,7 @@ world.afterEvents.entityDie.subscribe((death) => {
 		type: victim.typeId,
 			friendlytype: victim.typeId.replace("minecraft:", "").replace("_", " ").replace("v2", "").replace("_", ""), // readable entity type
 		// name: victim.nameTag ?? victim.name,
-		name: victim.name,
+		name: victim.nameTag,
 		loc: {
 			// x: Math.trunc(victim.location.x),
 			x: Math.trunc(victim.location.x),
@@ -502,8 +513,9 @@ world.afterEvents.entityDie.subscribe((death) => {
 			name: victim.dimension.id.replace("minecraft:", "")
 		},
 		tags: victim.getTags(),
-			pvp: victim.hasTag('s3:pvp')
+			pvp: victim.hasTag('s3:pvp'),
 		// mode: victim.getGameMode() ?? world.getGameMode()
+		baby: victim.getComponent("is_baby") != null //     lookingEntities[0].getComponent("is_baby") != null
 	}
 	attacker = death.damageSource.damagingEntity; // redefine initilized attacker var
 	if ( !attacker ) { attacker = victim.victim } // if there is no attacker, consider the victim as attacker
@@ -513,7 +525,7 @@ world.afterEvents.entityDie.subscribe((death) => {
 		type: attacker.typeId,
 			friendlytype: attacker.typeId.replace("minecraft:", "").replaceAll("_", " ").replace("v2", ""), // readable entity type
 		// name: attacker.nameTag ?? attacker.name,
-		name: attacker.name,
+		name: attacker.nameTag,
 		loc: {
 			x: Math.trunc(attacker.location.x),
 				xlong: Math.fround(attacker.location.x),
@@ -532,14 +544,15 @@ world.afterEvents.entityDie.subscribe((death) => {
 			pvp: attacker.hasTag('s3:pvp'),
 		cause: death.damageSource.cause,
 	}
-
+	if ( !attacker ) { attacker = victim.victim } // if there is no attacker, consider the victim as attacker
+	
 	if (victim.type == "minecraft:player" || attacker.type == "minecraft:player" ) { // only run if victim is a player
 		if ( victim.type == "minecraft:player" ) { console.log("Player Killed") };	// mode = victim.victim.getGameMode();
 		if ( attacker.type == "minecraft:player" ) { console.log("Player Kill") };
 			// mode = attacker.attacker.getGameMode();
 		deathCheck()
 		killCheck()
-		killLogger()
+		if ( attacker.type == "minecraft:player" ) { killLogger() }
 		}
 // Kill Trackers
 	// if (!attacker || attacker.type !== "minecraft:player" || attacker == victim.victim	) {return;} // stop if the attacker is not a player or the attacker is the victim 
@@ -552,46 +565,50 @@ world.afterEvents.entityDie.subscribe((death) => {
 });
 
 export async function killLogger() {
-	console.log("KILL LOGGER");
+	if (config.debuglog == true) { console.log("KILL LOGGER START") }
+	if (config.debuglog == true && (!attacker || attacker == undefined) ) { console.log("KILL LOGGER" , "ATTACKER INVALID") }
+	if (config.debuglog == true && (!victim || victim == undefined) ) { console.log("KILL LOGGER" , "VICTIM INVALID") }
 		// Chat kill announcements (public)
-		if (config.announceallkills == true)
-		{
-			if (attacker.id != "minecraft:player")
-			{ 
-				if (victim.friendlytype.startsWith("a") || victim.friendlytype.startsWith("e") || victim.friendlytype.startsWith("i") || victim.friendlytype.startsWith("o") || victim.friendlytype.startsWith("u") )  // vowel
-				{ world.sendMessage(`${[attacker.name]} killed an ${[victim.friendlytype]}(${[killdist.total]}m)`) }
-				else // consonant
-				{ world.sendMessage(`${[attacker.name]} killed a ${[victim.friendlytype]} ${[victim.name]}(${[killdist.total]}m)`) }
-			}
+
+	if (config.announceallkills == true) {
+		if (config.debuglog == true) { console.log("KILL LOGGER" , "announce kills true") }
+		if (attacker.type == "minecraft:player" && victim.type != "minecraft:player") {
+			if (config.debuglog == true) { console.log("KILL LOGGER" , "attacker" , attacker.name ) }
+			if (victim.baby == true) { world.sendMessage(`§4${[attacker.name]} butchered a baby ${[victim.friendlytype]} ${[victim.name]} (${[killdist.total	]}m)`) 
+				return }
+			if (victim.friendlytype.startsWith("a") || victim.friendlytype.startsWith("e") || victim.friendlytype.startsWith("i") || victim.friendlytype.startsWith("o") || victim.friendlytype.startsWith("u") ) { // vowel
+				world.sendMessage(`${[attacker.name]} killed an ${[victim.friendlytype]} ${[victim.name]} (${[killdist.total]}m)`) }
+			else { // consonant
+				world.sendMessage(`${[attacker.name]} killed a ${[victim.friendlytype]} ${[victim.name]} (${[killdist.total]}m)`) }
+		}
 			
-			if (attacker.id == "minecraft:player") {
-				world.sendMessage(`${[attacker.name]} killed ${[victimname]}`);
-				console.log(attacker.name , "killed" , victim.name , "in" , mode , "in" , victim.dimension.name)
-			}
+		if (attacker.type == "minecraft:player" && victim.type == "minecraft:player" ) {
+		if (attacker.id != victim.id ) {
+			world.sendMessage(`${[attacker.name]} killed ${[victim.name]}`);
+			console.log(attacker.name , "killed" , victim.name , "in" , mode )
 		}
-		
-		if (config.logallkills == true && config.announceallkills == false)
-		{
+		}
+	}
+		// Chat kill announcements (private)
+	if (config.logallkills == true && config.announceallkills == false) {
+		if (config.debuglog == true) { console.log("KILL LOGGER" , "private chat log kills true") }
+		if (victim.type != "minecraft:player") { // Non Player Kill
 			if (victim.friendlytype.startsWith("a") || victim.friendlytype.startsWith("e") || victim.friendlytype.startsWith("i") || victim.friendlytype.startsWith("o") || victim.friendlytype.startsWith("u") )  // vowel
-			{ attacker.sendMessage(`${[attacker.name]} killed an ${[victim.friendlytype]}`) }
+			{ attacker.sendMessage(`${[attacker.name]} killed an ${[victim.friendlytype]} ${[victim.name]} (${[killdist.total]}m)`) }
 			else // consonant
-			{ attacker.sendMessage(`${[attacker.name]} killed a ${[victim.friendlytype]} ${[victim.name]} `) }
+			{ attacker.sendMessage(`${[attacker.name]} killed a ${[victim.friendlytype]} ${[victim.name]} (${[killdist.total]}m)`) }
 		}
+	}
+	if (config.debuglog == true) { console.log("KILL LOGGER DONE") }
 }
 
 // Distance trackers TODO implement new distance trackers
 // scoreboard objectives add (score name) minecraft.custom:minecraft.walk_one_cm // statistics dont work in Bedrock
+// TODO CURRENT update builder/miner var to match victim/attacker
 	// var player;
 	var	builder;
-	 var buildername; 
 	var miner;
-		var minername
-  var blocktype;
-	  var blockname;
-		var blockstring;
-	var	dimension;
-		var dimensionname;
-	var mode;
+
 // Block Trackers
 var railplaced = false;
 // Blocks Placed Tracker // TODO Split trackers into dimension and gamemmode
@@ -600,31 +617,51 @@ world.afterEvents.playerPlaceBlock.subscribe(({player, block, dimension}) => {
 	// const overworldplayers = world.nether.getPlayers(options?: EntityQueryOptions)
 	// const netherplayers = world.nether.getPlayers(options?: EntityQueryOptions)
 	// const endplayers = world.nether.getPlayers(options?: EntityQueryOptions)
-
-	builder = player
-	 buildername = player.nameTag;
-		blocktype = block.typeId ?? 'Invalid Block';
-	   blockname = blocktype.replace("minecraft:", "").replace("_", " ");
-		 blockstring = blockname.toString();
-		dimension = player.dimension.id
-	   dimensionname = dimension.replace("minecraft:", "");
-		mode = player.getGameMode();
 	
-	railplaced = blockstring.includes("rail");
+	builder = {
+		builder: player,
+		id: player.id,
+		name: player.nameTag,
+		block: {
+			type: block.typeId ?? 'Invalid Block',
+			perm: block.permutation.getState,
+			name: block.typeId.replace("minecraft:", "").replace("_", " "),
+			string: block.typeId.replace("minecraft:", "").replace("_", " ").toString(),
+			loc: {
+				x: block.location.x,
+					xstring: block.location.x.toString(),
+				y: block.location.y,
+				z: block.location.z,
+					full: [ block.location.x , block.location.y , block.location.z , block.dimension.id.replace("minecraft:", "") ].toString().replaceAll(",", ", ")
+				},
+				rail: block.typeId.toString().includes("rail")
+		},
+		dimension: { //builder.dimension.id,
+			id: player.dimension.id,
+			name: player.dimension.id.replace("minecraft:", "")
+		},
+		mode: player.getGameMode(),
+	}
+	
+	// railplaced = block.typeId.toString.includes("rail");
 	
 	system.run(() => {
-	if (mode == "creative" )
-	{
-	creativeblocksplacedObjective?.addScore(player, 1);
-		railplacedCheck();
+	if (builder.mode == "creative" ) {
+		creativeblocksplacedObjective?.addScore(builder.builder, 1);
+		score = creativeblocksplacedObjective?.getScore(builder.builder);
+		if (config.debuglog == true) { console.log(builder.name , trackers.creativeblocksplaced.display , score) }
+		if (config.debuglog == true && builder.block.rail == true) { console.log("CALL" , "[RAIL PLACED CHECK]") }
+		if (builder.block.rail == true) { railplacedCheck() } // in creative mode call railcheck directly when a rail is placed
 	}
-	if (mode == "survival" )
-	{
-	survivalblocksplacedObjective?.addScore(player, 1);	
-	survivalblockplacedCheck();
+	if (builder.mode == "survival" ) {
+		survivalblocksplacedObjective?.addScore(builder.builder, 1);
+		score = survivalblocksplacedObjective?.getScore(builder.builder);
+		if (config.debuglog == true) { console.log(builder.name , trackers.survivalblocksplaced.display , score) }		
+		if (config.debuglog == true) { console.log("CALL" , "[BLOCK PLACED CHECK]") }
+		survivalblockplacedCheck();
 	}
-	console.log( buildername , "placed" , blockname , "in" , dimensionname , "in" , mode ); 
-	totalblocksplacedObjective?.addScore(player, 1);	
+	console.log( builder.name , "placed" , builder.block.name , "at" , builder.block.loc.full , "in" , builder.mode ); 
+	totalblocksplacedObjective?.addScore(builder.builder, 1);	
 	})
 });
 
@@ -644,11 +681,13 @@ world.beforeEvents.playerBreakBlock.subscribe(({player, block, dimension}) => {
 
 	miner = player;
 	miner = {
+		miner: player,
 		id: player.id,
 		name: player.nameTag,
 		block: {
 			type: block.typeId ?? 'Invalid Block',
 			name: block.typeId.replace("minecraft:", "").replace("_", " "),
+			per: block.permutation,
 			string: block.typeId.replace("minecraft:", "").replace("_", " ").toString(),
 			loc: {
 				x: block.location.x,
@@ -658,7 +697,8 @@ world.beforeEvents.playerBreakBlock.subscribe(({player, block, dimension}) => {
 					full: [ block.location.x , block.location.y , block.location.z , block.dimension.id.replace("minecraft:", "") ].toString().replaceAll(",", ", ")
 				}
 		},
-	dimension: { //attacker.dimension.id,
+		dimension: { //miner.dimension.id,
+			id: player.dimension.id,
 			name: player.dimension.id.replace("minecraft:", "")
 		},
 		mode: player.getGameMode(),
@@ -670,7 +710,6 @@ world.beforeEvents.playerBreakBlock.subscribe(({player, block, dimension}) => {
 		goldmined = miner.block.string.includes("gold ore");
 		diamondmined = miner.block.string.includes("diamond ore");
 		netheritemined = miner.block.string.includes("ancient debris");
-	
 
 	system.run(() => {
 	if (mode == "creative" )
@@ -695,11 +734,9 @@ world.afterEvents.worldInitialize.subscribe((startup) => {
 		title.titleCheck();
 });
 		
-		
 // Player Join initialize tracker
 world.afterEvents.playerJoin.subscribe((newjoin) => {
   const player = world.getPlayers({ name: newjoin.playerName })[0];
-
 	
   if (!player) {
     return;
@@ -715,7 +752,6 @@ world.afterEvents.playerJoin.subscribe((newjoin) => {
     initializeScoreboard();	// Initialize scoreboard after player join
 	})	
     objective.setScore(player, 0);
-		
   }
 		
 });
@@ -756,29 +792,26 @@ export async function pvpxpwinBonus() {
 export async function killCheck() {
 		if (attacker.type == "minecraft:player") {
 	// if (config.debuglog == true) { console.log("KILL CHECK") }
-		if (config.debuglog == true) { console.log("KILL CHECK") }
+		if (config.debuglog == true) { console.log("[KILL CHECK]" , "START") }
+		currentplayer = attacker.attacker;
 		
 		killDistanceCheck()
 
-		if (attacker.type == "minecraft:player" && attacker.id != victim.id) { 
-		console.log("PLAYER KILL");
+		if (attacker.type == "minecraft:player" && attacker.id != victim.id) { // make sure it was not a self caused death
+		console.log("[KILL CHECK]" , "PLAYER KILL");
 		player = attacker.attacker;
 		mode = player.getGameMode(); //?? "survival";
 		}
 		
-		// mode = victim.victim.getGameMode(); //?? 
-		if (attacker.id == victim.id) { console.log("SELF KILL NOT TRACKED") };
+		if (attacker.type == "minecraft:player" && attacker.id == victim.id) { console.log("[KILL CHECK]" , "SELF KILL NOT TRACKED") };
 			
 	if (mode != "creative" || config.trackcreativekills == true ) { // Only track if killer gamemmode is not creative or trackcreativekills is true
 	if (attacker.id != victim.id) { // Only track kill if the entity id of attacker and victim ar enot the same
-		console.log("TRACK KILL");
-		console.log(mode);
-		
-		// console.log(hostileMobs.indexOf(victim.type));
+		if (config.debuglog == true) { console.log("[KILL CHECK]" , "TRACK KILL") }
 		
 	// Player Kill Counter	
 	if (victim.type == "minecraft:player" && attacker.type == "minecraft:player" && attacker.id != victim.id) {
-			console.log(attacker.name , "killed" , victim.name);
+			console.log("[KILL CHECK]" , attacker.name , "killed" , victim.name);
 			playerkillsObjective?.addScore(attacker.attacker, 1);
 
 	}
@@ -825,6 +858,10 @@ export async function killCheck() {
 		if (zombieMobs.indexOf(victim.type) > -1) {
 			zombiekillsObjective?.addScore(attacker.attacker, 1);
 			console.log(attacker.name , "Zombie Kills" , score);
+			if (victim.baby == true) {
+				zombiebabykillsObjective?.addScore(attacker.attacker, 1);
+				console.log(attacker.name , "Zombie Baby Kills" , score);
+			}
 		}		
 		// Horde Counters
 		if (hordeMobs.indexOf(victim.type) > -1) {
@@ -845,6 +882,12 @@ export async function killCheck() {
   if (pvpMobs.indexOf(victim.type) > -1) {
 		console.log(attacker.name ,  "killed PVP mob");
     totalpvpmobkillsObjective?.addScore(attacker.attacker, 1);
+  }	
+	
+	// Baby Butcher Counter
+  if (victim.baby == true) {
+		console.log(attacker.name ,  "killed baby");
+    babykillsObjective?.addScore(attacker.attacker, 1);
   }
 
 	// Custom Mob Counter
@@ -855,25 +898,30 @@ export async function killCheck() {
 	
 	// All Kills
 	// console.log( attacker.name , "killed" , victim.friendlytype , victim.loc.full , "kills" , score ) // debug
+	// oldhighscore = allkillsObjective?.getScore(attacker.attacker);
+	oldcurrentscore = allkillsObjective?.getScore(attacker.attacker);
   allkillsObjective?.addScore(attacker.attacker, 1);
-	console.log( "SCORE ADDED" ); // debug
-	score = allkillsObjective?.getScore(attacker.attacker);
-	console.log( attacker.name , "killed" , victim.friendlytype , "in" , mode , victim.loc.full , killdist.total,"m", "total kills" , score );
+	if (config.debuglog == true) { console.log( "[KILL CHECK]" , "SCORE ADDED" ) } // debug
+	currentscore = allkillsObjective?.getScore(attacker.attacker);
+	console.log( attacker.name , "killed" , victim.friendlytype , "in" , mode , victim.loc.full , killdist.total,"m", "total kills" , currentscore );
 	
 		currenttracker = allkillsObjective; // set currenttracker before calling leadercheck
-			forceannounce = false;
+			// forceannounce = false;
+		if (config.debuglog == true) { console.log( "[KILL CHECK]" , "CALL" , "[LEADER CHECK]") } // debug
 		leaderCheck();
 	}
 	}
-	else { console.log("Creative mode kill not tracked") }
+	else { 
+		if (config.debuglog == true) { console.log("[KILL CHECK]" , "Creative mode kill not tracked") }
+		}
 	}
+	if (config.debuglog == true) { console.log("[KILL CHECK]" , "DONE") }
 }	
  // Kill Distance Check Function
 export var killdist; 
  export var forceannounce = false;
 export async function killDistanceCheck() {
-	while (config.debuglog == true) { console.log("KILL DISTANCE CHECK");
-		break }
+	if (config.debuglog == true) { console.log("[KILL DIST CHECK]" , "START") }
 			
 		killdist = {
 			x: Math.abs(victim.loc.xlong - attacker.loc.xlong),
@@ -886,11 +934,11 @@ export async function killDistanceCheck() {
 	console.log( "vertical dist" , killdist.y, "total dist" , killdist.total );
 
 	if (victim.type == "minecraft:player") { // Player Kill Distnace
-				score = longestdistplayerkillObjective?.getScore(attacker.attacker);
-				console.log(attacker.name , "Old Longest Distance Player Kill" , score );
+				currentscore = longestdistplayerkillObjective?.getScore(attacker.attacker);
+				console.log(attacker.name , "Old Longest Distance Player Kill" , oldhighscore );
 				if (killdist.total > score) {	longestdistplayerkillObjective?.setScore(attacker.attacker, killdist.total) }
 				score = longestdistplayerkillObjective?.getScore(attacker.attacker);
-				console.log(attacker.name , "Longest Distance Player Kill" , score , "(" , killdist.total , ")" );	
+				console.log(attacker.name , "Longest Distance Player Kill" , currentscore , "(" , killdist.total , ")" );	
 				
 				// if ( )
 				// {
@@ -917,68 +965,128 @@ export async function killDistanceCheck() {
 				}
 	}
 	// All Kills Distance
-			score = longestdistkillObjective?.getScore(attacker.attacker);
+			currentscore = killdist.total;
+			oldcurrentscore = longestdistkillObjective?.getScore(attacker.attacker);
 			// console.log(attacker.name , "Old Longest Distance Kill" , score );
-				if (killdist.total > score) {
-					longestdistkillObjective?.setScore(attacker.attacker, killdist.total);
-					score = longestdistkillObjective?.getScore(attacker.attacker);
-					console.log(attacker.name , "NEW Personal Longest Distance Kill" , score,"m" );
-					attacker.attacker.sendMessage(`${[attacker.name]} New Personal Longest Kill Distance ${[score]}m`);
-					
-					currenttracker = longestdistkillObjective; // set currenttracker before calling leadercheck
-						forceannounce = true; // force announcing updates to current tracker
-					leaderCheck();
-					}
+			if (currentscore > oldcurrentscore || !oldcurrentscore) {
+				
+				// oldhighscore = oldcurrentscore;
+				// currenttracker = longestdistkillObjective; // set currenttracker before calling leadercheck
+					// forceannounce = true; // force announcing updates to current tracker
+				// leaderCheck();
+				
+				if (config.debuglog == true) { console.log("[KILL DIST CHECK]" , "set new personal score") }
+				longestdistkillObjective?.setScore(attacker.attacker, killdist.total); // set the scoreboard score to equal the new killdist
+				currentscore = longestdistkillObjective?.getScore(attacker.attacker);
+				console.log(attacker.name , "NEW Personal Longest Distance Kill" , currentscore,"m" ); 
+				attacker.attacker.sendMessage(`${[attacker.name]} New Personal Longest Kill Distance ${[currentscore]}m`);
+				
+				oldhighscore = oldcurrentscore;
+				currenttracker = longestdistkillObjective; // set currenttracker before calling leadercheck
+					forceannounce = true; // force announcing updates to current tracker
+				if (config.debuglog == true) { console.log("[KILL DIST CHECK]" , "CALL" , "[LEADER CHECK]") }
+				leaderCheck();
+				
+				}
 			score = longestdistkillObjective?.getScore(attacker.attacker);
-			console.log(attacker.name , "Longest Distance Kill" , score ,"m" , "(",killdist.total,")" );				
+			console.log(attacker.name , "Longest Distance Kill" , score ,"m" , "(",killdist.total,"m )" );				
 	// TODO CURRENT	split distance trackers to pvp modes etc
+		if (config.debuglog == true) { console.log("[KILL DIST CHECK]" , "DONE") }
 }
 
-export var currenttracker;
-export var currentscore;
+export var currentplayer; // current player for function
+export var currenttracker; // current tracker for leader checking
+export var currenttrackerscore; // current tracker for leader checking
+export var currentscore; // current score for leader checking
+export var oldcurrentscore; // old score for current tracker
 export var highscore = 0;
+export var oldscore = 0;
 export var oldhighscore = 0;
 export var trackerhighscoreplayer;
 export var previoustrackerhighscoreplayer;
-export var scoreArray; 
+export var leadercheckplayer; // current player for leader checking
 var allplayers = world.getAllPlayers();
 
 export async function leaderCheck() { // TODO CURRENT split leadercheck into initial (all) and currentobjective
-	if (config.debuglog == true) { console.log("TRACKER LEADER CHECK") }
+	if (config.debuglog == true) { console.log("[TRACKER LEADER CHECK]" , "START") }
 	// const allplayers = world.getAllPlayers();
+	// highscore = 0;
+	// oldhighscore = 0;
 	if (!currenttracker) {
-	leaderCheckGeneric() 
+		 if (config.debuglog == true) { console.log("[LEADER CHECK]" , "currenttracker undefined") }
+		leaderCheckGeneric()
+		return
 	}
+	
 	else {
-	for (const player of allplayers) {
-		if (!player) {
-			if (config.debuglog == true) { console.log("LEADER CHECK:" , "player undefined") }
-      return }
+	for ( leadercheckplayer of allplayers ) {
+		if (!leadercheckplayer) {
+		 if (config.debuglog == true) { console.log("[LEADER CHECK]" , "player undefined") }
+     return }
+		
+		// oldhighscore = oldcurrentscore;
+		if (!oldhighscore) {  oldhighscore = currenttrackerscore } // if no oldhighscore set to 
+		if (!highscore) {  highscore = currenttrackerscore } // if no highscore set to
+		
+		currenttrackerscore = currenttracker.getScore(leadercheckplayer); // get currentcheckplayer score
+		console.log("[LEADER CHECK]" , [currenttracker.displayName] , "Personal" , [leadercheckplayer.name] , [currenttrackerscore]  , [oldcurrentscore]  );
+		
+		if (currenttrackerscore > oldhighscore) {
+			console.log("[LEADER CHECK]" , [currenttracker.displayName] , "Temp Leader" , [leadercheckplayer.name] , [currenttrackerscore] , ">" , [oldhighscore] );
+			if (!highscore) { highscore = currenttrackerscore }
+			oldhighscore = highscore; // store oldhighscore
+			highscore = currenttrackerscore;
+			console.log("[LEADER CHECK]" , [currenttracker.displayName] , "Temp Leader" , [leadercheckplayer.name] , [currenttrackerscore] , ">" , [oldhighscore] , [highscore] );
+			console.log("[LEADER CHECK]" , [currenttracker.displayName] , "Temp Leader" , [leadercheckplayer.name] , [highscore]  );
+			previoustrackerhighscoreplayer = leadercheckplayer;
+		}
+		// if (currenttrackerscore > oldhighscore) {
 			
-		currentscore = currenttracker.getScore(player);
-		console.log("LEADER CHECK:" , [currenttracker.displayName] , [player.nameTag] , "Current Score:" , [currentscore] );
-		trackerhighscoreplayer = previoustrackerhighscoreplayer;
-	if (currentscore > oldhighscore)
+			// if (!highscore) { highscore = currenttrackerscore }
+			// oldhighscore = highscore; // store oldhighscore
+			// highscore = currenttrackerscore;
+			// console.log("[LEADER CHECK]" , [currenttracker.displayName] , "Temp Leader" , [leadercheckplayer.name] , [highscore]  );
+			// previoustrackerhighscoreplayer = leadercheckplayer;
+		// }
+	}
+	
+	if (config.debuglog == true) { console.log("[LEADER CHECK]" , [currenttracker.displayName] , "Current Leader" , [previoustrackerhighscoreplayer.name] , [highscore] ) }
+	
+		// if (!currentscore) { currentscore = currenttracker.getScore(leadercheckplayer) }
+		// oldhighscore = currenttracker.getScore(leadercheckplayer);
+		// console.log("LEADER CHECK:" , [currenttracker.displayName] , [player.name] , "Current Score:" , [oldhighscore] );
+		// trackerhighscoreplayer = previoustrackerhighscoreplayer;
+	if (currentscore >= highscore)
 			{
-				oldhighscore = highscore; // store the old highscore
-				highscore = currentscore; // set higscore to currentscore
 				previoustrackerhighscoreplayer = trackerhighscoreplayer; // store the old score leader
-				trackerhighscoreplayer = player; // set the new leader
+				trackerhighscoreplayer = currentplayer; // set the new leader
+				if ( !previoustrackerhighscoreplayer ) { previoustrackerhighscoreplayer = trackerhighscoreplayer }
+				if (config.debuglog == true) { console.log("[LEADER CHECK]" , [currenttracker.displayName] , "NEW High Score" , [highscore] ) }
 				
-				if (previoustrackerhighscoreplayer != trackerhighscoreplayer)
-				{ console.log("LEADER CHECK:" , "NEW Leader:" , [player.nameTag] , "High Score:" , [highscore] , "( +" , [highscore - oldhighscore] , ")" ) }
-				else { console.log("LEADER CHECK:" , "Leader:" , [trackerhighscoreplayer.nameTag] , "NEW High Score:" , [highscore] , "( +" , [highscore - oldhighscore] , ")" ) }
+				if ( previoustrackerhighscoreplayer.id != trackerhighscoreplayer.id || !previoustrackerhighscoreplayer.id ) {
+				console.log("[LEADER CHECK]" , [currenttracker.displayName] , "NEW Leader" , [player.nameTag] , "High Score" , [currentscore] , "( +" , [currentscore - oldhighscore] , ")" ) }
+				
+				else if ( previoustrackerhighscoreplayer.id == trackerhighscoreplayer.id ) {
+				console.log("[LEADER CHECK]" ,  [currenttracker.displayName] ,"Leader" , [trackerhighscoreplayer.nameTag] , "NEW High Score" , [currentscore] , "( +" , [currentscore - oldcurrentscore] , ")" ) }
+				
+				if (config.debuglog == true) { console.log("[LEADER CHECK]" , "CALL" , "[ANNOUNCE]") }
+				oldhighscore = highscore; // store the old highscore
+				highscore = currentscore; // set highscore to currentscore
 				announceCheck()
 			}
-	else if (currentscore <= oldhighscore) { console.log("LEADER CHECK:" , [currenttracker.displayName] , "Current Score:" , [currentscore] , "Leader:" , [trackerhighscoreplayer.nameTag]) }
+	else if (currentscore < highscore) {
+		console.log("[LEADER CHECK]" , [currenttracker.displayName] , "Current Score" , [currentscore] , "Leader" , [trackerhighscoreplayer.name] , [highscore] ) 
+		forceannounce = false;
+		}
 	// announceCheck()
 	// oldhighscore = 0;
 	}
-	
-	}
+	console.log("[LEADER CHECK]" , [currenttracker.displayName] , "Leader" , [trackerhighscoreplayer.nameTag] , [highscore])
+	if (config.debuglog == true) { console.log("[TRACKER LEADER CHECK]" , "DONE") }
 }
+
 export async function leaderCheckGeneric() { // TODO CURRENT split leadercheck into initial (all) and currentobjective
-	if (config.debuglog == true) { console.log("TRACKER LEADER CHECK GENERIC") }
+	if (config.debuglog == true) { console.log("[TRACKER LEADER CHECK GENERIC]" , "START") }
 	// const allplayers = world.getAllPlayers();
 	for (let key in trackers) {
     const obj = trackers[key];
@@ -991,11 +1099,11 @@ export async function leaderCheckGeneric() { // TODO CURRENT split leadercheck i
 	
 	for (const player of allplayers) {
 		if (!player) {
-			if (config.debuglog == true) { console.log("LEADER CHECK:" , "player undefined") }
+			if (config.debuglog == true) { console.log("[LEADER CHECK GEN]" , "player undefined") }
       return }
 			
 		currentscore = currenttracker.getScore(player);
-		console.log("LEADER CHECK:" , [currenttracker.displayName] , [player.nameTag] , "Current Score:" , [currentscore] );
+		console.log("[LEADER CHECK GEN]" , [currenttracker.displayName] , [player.name] , "Current Score" , [currentscore] );
 		trackerhighscoreplayer = previoustrackerhighscoreplayer;
 	if (currentscore > oldhighscore)
 			{
@@ -1005,11 +1113,11 @@ export async function leaderCheckGeneric() { // TODO CURRENT split leadercheck i
 				trackerhighscoreplayer = player; // set the new leader
 				
 				if (previoustrackerhighscoreplayer != trackerhighscoreplayer)
-				{ console.log("LEADER CHECK:" , "NEW Leader:" , [player.nameTag] , "High Score:" , [highscore] , "( +" , [highscore - oldhighscore] , ")" ) }
-				else { console.log("LEADER CHECK:" , "Leader:" , [trackerhighscoreplayer.nameTag] , "NEW High Score:" , [highscore] , "( +" , [highscore - oldhighscore] , ")" ) }
-				announceCheck()
+				{ console.log("[LEADER CHECK GEN]" , "NEW Leader" , [player.name] , "High Score" , [highscore] , "( +" , [highscore - oldhighscore] , ")" ) }
+				else { console.log("[LEADER CHECK GEN]" , "Leader" , [trackerhighscoreplayer.name] , "NEW High Score" , [highscore] ) }
+				// announceCheck()
 			}
-	else if (currentscore <= oldhighscore) { console.log("LEADER CHECK:" , [currenttracker.displayName] , "Current Score:" , [currentscore] , "Leader:" , [trackerhighscoreplayer.nameTag]) }
+	else if (currentscore <= oldhighscore) { console.log("[LEADER CHECK]" , [currenttracker.displayName] , "Current Score" , [currentscore] , "Leader" , [trackerhighscoreplayer.name]) }
 	// announceCheck()
 	highscore = 0;
 	oldhighscore = 0;
@@ -1017,45 +1125,60 @@ export async function leaderCheckGeneric() { // TODO CURRENT split leadercheck i
 	highscore = 0;
 	oldhighscore = 0;
 	}
+	if (config.debuglog == true) { console.log("[TRACKER LEADER CHECK GENERIC DONE]") }
 }
 
 export async function announceCheck() {
 	// leaderCheck();
-	if (config.debuglog == true) { console.log("TRACKER LEADER ANNOUNCE CHECK") }
+	if (config.debuglog == true) { console.log("[TRACKER LEADER ANNOUNCE CHECK START]") }
 	// const allplayers = world.getAllPlayers();
-	if (!previoustrackerhighscoreplayer) { console.log("ANNOUNCE:" , "Old High Score" , oldhighscore , "No Leader") }
-	else { console.log("ANNOUNCE:" , [currenttracker.displayName] , "Old High Score" , oldhighscore , "Leader:" , [previoustrackerhighscoreplayer.nameTag]) }
-	// highscore = -1;
-	for (const player of allplayers) {
-		if (!player) {
-		if (config.debuglog == true) { console.log("player undefined") }
-      return }
-		currentscore = currenttracker.getScore(player);
-		console.log("ANNOUNCE:" , [currenttracker.displayName] , [player.nameTag] , "Current Score:" , [currentscore] );
+	if (!previoustrackerhighscoreplayer || !trackerhighscoreplayer) { console.log("[ANNOUNCE]" , "Old High Score" , oldhighscore , "No Old Leader") }
+	// if (!trackerhighscoreplayer) { console.log("[ANNOUNCE]" , "Old High Score" , oldhighscore , "No Leader") }
+	else { console.log("[ANNOUNCE]" , [currenttracker.displayName] , "Old Leader" , [previoustrackerhighscoreplayer.nameTag]) }
+	
+	// trackerhighscoreplayer = currentplayer;
+	// console.log("[ANNOUNCE]" , [currenttracker.displayName] , "NEW High Score" , highscore , "Leader" , [trackerhighscoreplayer.nameTag])
 
-				if (previoustrackerhighscoreplayer != trackerhighscoreplayer)
+	// highscore = -1;
+	// for (const player of allplayers) {
+		// if (!player) {
+		// if (config.debuglog == true) { console.log("player undefined") }
+      // return }
+		// currentscore = currenttracker.getScore(player);
+		// console.log("[ANNOUNCE]" , [currenttracker.displayName] , [player.name] , "Current Score" , [currentscore] );
+
+				if (previoustrackerhighscoreplayer != trackerhighscoreplayer )
 				{
-				world.sendMessage(`§g${[currenttracker.displayName]} New Leader ${[trackerhighscoreplayer.nameTag]} ${[highscore]}`);
-				console.log("ANNOUNCE:" , [currenttracker.displayName] , "NEW Leader New High Score:" , [trackerhighscoreplayer.nameTag] , [highscore] , "( +" , [highscore - oldhighscore] , ")"  );
-				previoustrackerhighscoreplayer = player;
-				}
-				else if (previoustrackerhighscoreplayer == trackerhighscoreplayer && forceannounce ) // TODO add variable to control leader score update announce
-				{
-				world.sendMessage(`§g${[currenttracker.displayName]} Leader ${[trackerhighscoreplayer.nameTag]} ${[highscore]} `);
-				console.log("ANNOUNCE:" , [currenttracker.displayName] , "Leader New High Score:" , [trackerhighscoreplayer.nameTag] , [highscore] , "( +" , [highscore - oldhighscore] , ")" );
-				previoustrackerhighscoreplayer = player;
+				if (config.debuglog == true && forceannounce == true) { console.log("[ANNOUNCE]" , "FORCE ANNOUNCE") }
 				forceannounce = false;
+				previoustrackerhighscoreplayer = trackerhighscoreplayer;	
+				trackerhighscoreplayer = player;
+				world.sendMessage(`§g${[currenttracker.displayName]} New Leader ${[trackerhighscoreplayer.nameTag]} ${[highscore]}`);
+				console.log("[ANNOUNCE]" , [currenttracker.displayName] , "NEW Leader New High Score" , [trackerhighscoreplayer.nameTag] , [highscore] , "( +" , [highscore - oldhighscore] , ")"  );
+				return;
+				}
+				
+				if (previoustrackerhighscoreplayer.id == trackerhighscoreplayer.id && forceannounce == true ) // TODO add variable to control leader score update announce
+				{
+				if (config.debuglog == true ) { console.log("[ANNOUNCE]" , "FORCE ANNOUNCE") }
+				if (config.debuglog == true && forceannounce == true) { console.log("[ANNOUNCE]" , "FORCE ANNOUNCE") }
+				forceannounce = false;
+				trackerhighscoreplayer = player;
+				world.sendMessage(`§g${[currenttracker.displayName]} Leader ${[trackerhighscoreplayer.nameTag]} ${[highscore]} `);
+				console.log("[ANNOUNCE]" , [currenttracker.displayName] , "Same Leader New High Score" , [trackerhighscoreplayer.nameTag] , [highscore] , "( +" , [highscore - oldhighscore] , ")" );
+				previoustrackerhighscoreplayer = player;
+				return;
 				}
 			// }
-	}
-	console.log("ANNOUNCE:" , "High Score:" , [highscore] , "Leader:" , [trackerhighscoreplayer.nameTag]);
+	// }
+	console.log("[ANNOUNCE]" , [currenttracker.displayName] , "High Score" , [highscore] , "Leader" , [trackerhighscoreplayer.nameTag]);
+	if (config.debuglog == true) { console.log("[TRACKER LEADER ANNOUNCE CHECK DONE]") }
 }
 
 export async function deathCheck() {
 	if (victim.type == "minecraft:player") { // only run if victim is a player
 	// if (config.debuglog == true) { console.log("DEATH CHECK") }
-	while (config.debuglog == true) { console.log("DEATH CHECK");
-		break }
+	if (config.debuglog == true) { console.log("[DEATH CHECK]" , "START") }
 		// console.log( victim.pvp );
 		if ( victim.pvp == true && attacker.pvp == true && pvp.pvp_started == true ) { // PVP Death
 			console.log("Player" , victimname , "died in a PVP match");
@@ -1084,6 +1207,7 @@ export async function deathCheck() {
 				}
 		}
 	}
+	if (config.debuglog == true) { console.log("[DEATH CHECK]" , "DONE") }
 }
 	// Boss Kill Bonuses
 export async function bosskillBonus() {
@@ -1203,13 +1327,13 @@ export async function showBosskills() {
 }
 	// Show PVPWins
 export async function showWins() {
-	if (horde == true)
+	if (pvp.horde == true)
 	{
 		if (config.debuglog == true) { console.log("SHOWING HORDE WINS") }
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: totalhordematchwinsObjective, });
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: totalhordematchwinsObjective, });
 	}
-	if (horde != true)
+	if (pvp.horde != true)
 	{
 		if (config.debuglog == true) { console.log("SHOWING PVP WINS") }
 		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: totalpvpmatchwinsObjective, });
@@ -1219,8 +1343,8 @@ export async function showWins() {
 	// Show Deaths
 export async function showDeaths() {
 		if (config.debuglog == true) { console.log("SHOWING DEATHS") }
-		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: playerdeathsObjective, });
-		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: playerdeathsObjective, });
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.Sidebar, { objective: playerdeathsObjective, sortOrder: ObjectiveSortOrder.Ascending, });
+		world.scoreboard.setObjectiveAtDisplaySlot(DisplaySlotId.List, { objective: playerdeathsObjective, sortOrder: ObjectiveSortOrder.Ascending, });
 }
 // Chat Logging (Private)
 export async function startLogging() {
@@ -1240,50 +1364,44 @@ export async function stopAnnouncing() {
 // Block Checker FUNCTIONS
 	// Blocks Placed Functions
 export async function survivalblockplacedCheck() {
-	if (dimension == "minecraft:overworld" )
-		{
-		overworldblocksplacedObjective?.addScore(builder, 1);
+	if (config.debuglog == true) { console.log("[BLOCK PLACED CHECK]" , "START") }
+	if (builder.dimension.id == "minecraft:overworld" ) {
+		overworldblocksplacedObjective?.addScore(builder.builder, 1);
 		}
-		if (dimension == "minecraft:nether" )
-		{
-		netherblocksplacedObjective?.addScore(builder, 1);	
+		if (builder.dimension.id == "minecraft:nether" ) {
+		netherblocksplacedObjective?.addScore(builder.builder, 1);	
 		}
-		if (dimension == "minecraft:the_end" )
-		{
-		endblocksplacedObjective?.addScore(builder, 1);	
+		if (builder.dimension.id == "minecraft:the_end" ) {
+		endblocksplacedObjective?.addScore(builder.builder, 1);	
 		}
-		railplacedCheck();
+		if (builder.block.rail == true) {railplacedCheck() }
+		if (config.debuglog == true) { console.log("[BLOCK PLACED CHECK]" , "DONE") }
 }
 
 export async function railplacedCheck() {
-	// if (config.debuglog == true) { console.log("railplaced check") }
-	if (railplaced == true)
-	{
-		if (mode == "survival" )
-		{	
-			if (dimension == "minecraft:overworld" )
-			{
-				totalrailsplacedObjective?.addScore(builder, 1); // total rails
-				overworldrailsplacedObjective?.addScore(builder, 1); // overworld survival rails
-				survivalrailsplacedObjective?.addScore(builder, 1); // total survival rails
-				score = survivalrailsplacedObjective?.getScore(builder);
-				if (config.debuglog == true) { console.log(buildername , "total rails placed" , score) } 
+	if (config.debuglog == true) { console.log("[RAIL CHECK]") }
+	if (builder.block.rail == true) {
+		if (builder.mode == "survival" ) {
+			if (builder.dimension == "minecraft:overworld" ) {
+				totalrailsplacedObjective?.addScore(builder.builder, 1); // total rails
+				overworldrailsplacedObjective?.addScore(builder.builder, 1); // overworld survival rails
+				survivalrailsplacedObjective?.addScore(builder.builder, 1); // total survival rails
+				score = survivalrailsplacedObjective?.getScore(builder.builder);
+				if (config.debuglog == true) { console.log(builder.name , "total rails placed" , score) } 
 			}
-			if (dimension == "minecraft:nether" )
-			{
-				totalrailsplacedObjective?.addScore(builder, 1); // total rails
-				survivalrailsplacedObjective?.addScore(builder, 1); // total survival rails
-				netherrailsplacedObjective?.addScore(builder, 1); // nether survival rails
-				score = netherrailsplacedObjective?.getScore(builder);
-				if (config.debuglog == true) { console.log(buildername , "total and nether rails placed" , score) }
+			if (builder.dimension == "minecraft:nether" ) {
+				totalrailsplacedObjective?.addScore(builder.builder, 1); // total rails
+				survivalrailsplacedObjective?.addScore(builder.builder, 1); // total survival rails
+				netherrailsplacedObjective?.addScore(builder.builder, 1); // nether survival rails
+				score = netherrailsplacedObjective?.getScore(builder.builder);
+				if (config.debuglog == true) { console.log(builder.name , "total and nether rails placed" , score) }
 			}
 		}
-		if (mode == "creative" )
-		{
-				totalrailsplacedObjective?.addScore(builder, 1); // total rails
-				creativerailsplacedObjective?.addScore(builder, 1); // total creative rails 
-				score = creativerailsplacedObjective?.getScore(builder);
-				if (config.debuglog == true) { console.log(buildername , "total rails placed" , score) }
+		if (builder.mode == "creative" ) {
+				totalrailsplacedObjective?.addScore(builder.builder, 1); // total rails
+				creativerailsplacedObjective?.addScore(builder.builder, 1); // total creative rails 
+				score = creativerailsplacedObjective?.getScore(builder.builder);
+				if (config.debuglog == true) { console.log(builder.name , "total rails placed" , score) }
 		}
 	}
 }
@@ -1291,10 +1409,10 @@ export async function railplacedCheck() {
 // Blocks Broken Function
 export async function survivalblockbrokenCheck() {
 	dimension = miner.dimension.id;
-	console.log("survival block broken check");
+	if (config.debuglog == true) { console.log("[SURVIVAL BLOCKCHECK]") }
 	// console.log(logbroke);
-	console.log(dimension);
-		if (dimension == "minecraft:overworld" )
+	// console.log(dimension);
+		if (dimension == "minecraft:overworld" ) // TODO CURRENT get new miner dimension var
 		{
 		overworldblocksbrokenObjective?.addScore(miner, 1);
 		score = overworldblocksbrokenObjective?.getScore(miner);
